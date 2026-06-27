@@ -6,7 +6,7 @@ describe("world-cup-markets", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.worldCupMarkets as Program<WorldCupMarkets>;
+  const program = anchor.workspace.WorldCupMarkets as Program<WorldCupMarkets>;
 
   it("Is initialized!", async () => {
     // Add your test here.
