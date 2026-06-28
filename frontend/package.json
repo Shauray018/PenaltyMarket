@@ -1,0 +1,46 @@
+{
+  "name": "penalty-market",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "keeper:init-markets": "NODE_OPTIONS=--no-addons node ../keeper/initialize-market.mjs",
+    "keeper:init-markets:dry": "NODE_OPTIONS=--no-addons DRY_RUN=1 node ../keeper/initialize-market.mjs",
+    "mint:usdc": "NODE_OPTIONS=--no-addons node ../keeper/mint-usdc.mjs"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "latest",
+    "@solana/spl-token": "latest",
+    "@solana/wallet-adapter-base": "latest",
+    "@solana/wallet-adapter-phantom": "latest",
+    "@solana/wallet-adapter-react": "latest",
+    "@solana/wallet-adapter-react-ui": "latest",
+    "@solana/web3.js": "latest",
+    "@tanstack/react-query": "latest",
+    "bn.js": "latest",
+    "clsx": "latest",
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "recharts": "^3.9.0",
+    "tailwind-merge": "latest",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "latest",
+    "@types/bn.js": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
+  },
+  "overrides": {
+    "rpc-websockets": "9.2.0"
+  }
+}

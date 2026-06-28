@@ -1,0 +1,308 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap");
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #f6fff7;
+  --muted: #8b938e;
+  --border: #20262a;
+  --surface: #101418;
+  --panel: #050706;
+  --panel-2: #0b0f0d;
+  --accent: #49de79;
+  --accent-strong: #66f595;
+  --pitch: #0d5428;
+  --pitch-dark: #083518;
+  --gold: #ffcf2d;
+  --danger: #9c2439;
+  --accent-foreground: #061008;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Rubik", Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  transform: translateY(0);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+button:active {
+  transform: translateY(4px) scale(0.985);
+}
+
+.wallet-adapter-button {
+  height: 30px !important;
+  border-radius: 999px !important;
+  border: 1px solid #2a3334 !important;
+  background: #080b0a !important;
+  color: var(--accent) !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.pitch-hero {
+  position: relative;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.20) 2px, transparent 2px) 50% 0 / 2px 100% no-repeat,
+    radial-gradient(circle at 50% 50%, transparent 0 84px, rgba(255,255,255,0.24) 85px 87px, transparent 88px),
+    linear-gradient(90deg, #126331, #063d1c 56%, #0e5329);
+  box-shadow: 0 22px 55px rgba(73, 222, 121, 0.14);
+}
+
+.pitch-hero > * {
+  position: relative;
+}
+
+.market-row {
+  box-shadow: 0 1px 0 rgba(16, 21, 16, 0.04);
+}
+
+.market-row:hover {
+  box-shadow: 0 10px 28px rgba(16, 21, 16, 0.08);
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: #000;
+}
+
+.topbar {
+  height: 70px;
+  border-bottom: 1px solid #1b2224;
+  background: #050706;
+}
+
+.brand-mark {
+  display: grid;
+  height: 34px;
+  width: 34px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #061008;
+}
+
+.nav-link {
+  color: #8a918c;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.nav-link:hover,
+.nav-link-active {
+  color: var(--accent);
+}
+
+.mock-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #050706;
+}
+
+.soft-panel {
+  border: 1px solid #1c2426;
+  border-radius: 20px;
+  background: #050706;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.soft-panel:hover {
+  border-color: #2c383b;
+  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.22);
+}
+
+.press-3d {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 7px 0 #169247,
+    0 15px 24px rgba(73, 222, 121, 0.22);
+}
+
+.press-3d:active {
+  transform: translateY(6px) scale(0.985);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 1px 0 #169247,
+    0 5px 10px rgba(73, 222, 121, 0.16);
+}
+
+.dark-press-3d {
+  border: 1px solid #182227;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 5px 0 #020403,
+    0 12px 22px rgba(0, 0, 0, 0.34);
+}
+
+.dark-press-3d:active {
+  transform: translateY(5px) scale(0.985);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 #020403,
+    0 5px 10px rgba(0, 0, 0, 0.24);
+}
+
+.market-tile {
+  min-height: 324px;
+  border-radius: 22px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.market-tile:hover {
+  transform: translateY(-2px);
+}
+
+.market-tile:active {
+  transform: translateY(1px);
+}
+
+.live-shimmer {
+  position: relative;
+  border-color: rgba(255, 49, 75, 0.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 49, 75, 0.16),
+    0 0 32px rgba(255, 49, 75, 0.15);
+}
+
+.live-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 49, 75, 0.0) 35%, rgba(255, 49, 75, 0.28) 50%, rgba(255, 49, 75, 0.0) 65%, transparent 100%);
+  transform: translateX(-120%);
+  animation: live-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes live-shimmer {
+  to { transform: translateX(120%); }
+}
+
+.live-dot {
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+  border-radius: 999px;
+  background: #ff314b;
+  box-shadow: 0 0 0 0 rgba(255, 49, 75, 0.7);
+  animation: live-pulse 1.2s ease-out infinite;
+}
+
+@keyframes live-pulse {
+  70% { box-shadow: 0 0 0 8px rgba(255, 49, 75, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 49, 75, 0); }
+}
+
+.hero-title {
+  font-size: clamp(44px, 5vw, 72px);
+  line-height: 1.04;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.footer-shell {
+  border-top: 1px solid #222a2c;
+  background: #151a1d;
+}
+
+.global-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: #020403;
+}
+
+.loader-wrap {
+  position: relative;
+  width: min(360px, 76vw);
+  height: 76px;
+  display: grid;
+  place-items: center;
+}
+
+.loader-wrap::before {
+  display: none;
+}
+
+.loader-track {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.58),
+    0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.loader-fill {
+  position: absolute;
+  inset: 2px auto 2px 2px;
+  width: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 52%),
+    #ddff00;
+  animation: loader-fill 1.7s linear infinite;
+}
+
+.loader-ball {
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  height: 34px;
+  width: 34px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  object-fit: contain;
+  animation: loader-ball 1.7s linear infinite;
+}
+
+@keyframes loader-fill {
+  from { width: 0; }
+  to { width: calc(100% - 4px); }
+}
+
+@keyframes loader-ball {
+  from {
+    left: -16px;
+    transform: translateY(-50%);
+  }
+  to {
+    left: calc(100% - 18px);
+    transform: translateY(-50%);
+  }
+}

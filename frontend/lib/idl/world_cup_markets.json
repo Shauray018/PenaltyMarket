@@ -1,0 +1,1249 @@
+{
+  "address": "V1qrv6Cc4q9vkAFZR8fsAo7LFKUNJ4bHCdWX2AxxDNA",
+  "metadata": {
+    "name": "world_cup_markets",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "buy_position",
+      "discriminator": [
+        210,
+        108,
+        108,
+        28,
+        10,
+        46,
+        226,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "arg",
+                "path": "position_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "daily_odds_merkle_roots"
+        },
+        {
+          "name": "txoracle_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "position_id",
+          "type": "u64"
+        },
+        {
+          "name": "outcome_index",
+          "type": "u8"
+        },
+        {
+          "name": "stake_lamports",
+          "type": "u64"
+        },
+        {
+          "name": "odds_price",
+          "type": "i32"
+        },
+        {
+          "name": "odds_proof",
+          "type": {
+            "defined": {
+              "name": "OddsProof"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "claim_position",
+      "discriminator": [
+        168,
+        90,
+        89,
+        44,
+        203,
+        246,
+        210,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true,
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "position"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "fund_market",
+      "discriminator": [
+        173,
+        177,
+        32,
+        57,
+        20,
+        248,
+        119,
+        160
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "funder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_market",
+      "discriminator": [
+        35,
+        35,
+        189,
+        193,
+        155,
+        48,
+        170,
+        203
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "fixture_id",
+          "type": "u64"
+        },
+        {
+          "name": "market_type",
+          "type": {
+            "defined": {
+              "name": "MarketType"
+            }
+          }
+        },
+        {
+          "name": "options",
+          "type": {
+            "vec": "string"
+          }
+        },
+        {
+          "name": "close_time",
+          "type": "i64"
+        },
+        {
+          "name": "team1_stat_key",
+          "type": "u32"
+        },
+        {
+          "name": "team2_stat_key",
+          "type": "u32"
+        },
+        {
+          "name": "stat_period",
+          "type": "i32"
+        }
+      ]
+    },
+    {
+      "name": "refund_position",
+      "discriminator": [
+        92,
+        200,
+        157,
+        98,
+        87,
+        187,
+        115,
+        172
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true,
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "position"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "resolve_market",
+      "discriminator": [
+        155,
+        23,
+        80,
+        173,
+        46,
+        74,
+        23,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "daily_scores_merkle_roots"
+        },
+        {
+          "name": "txoracle_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "winning_outcome",
+          "type": "u8"
+        },
+        {
+          "name": "score_proof",
+          "type": {
+            "defined": {
+              "name": "ScoreProof"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "withdraw_liquidity",
+      "discriminator": [
+        149,
+        158,
+        33,
+        185,
+        47,
+        243,
+        253,
+        31
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_lamports",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "BetPosition",
+      "discriminator": [
+        29,
+        52,
+        8,
+        132,
+        175,
+        149,
+        65,
+        0
+      ]
+    },
+    {
+      "name": "Market",
+      "discriminator": [
+        219,
+        190,
+        213,
+        55,
+        0,
+        227,
+        198,
+        154
+      ]
+    },
+    {
+      "name": "SolVault",
+      "discriminator": [
+        21,
+        132,
+        230,
+        103,
+        19,
+        209,
+        129,
+        248
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MarketNotOpen",
+      "msg": "Market is not open for betting"
+    },
+    {
+      "code": 6001,
+      "name": "BettingClosed",
+      "msg": "Betting period has closed"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidOutcome",
+      "msg": "Invalid outcome index"
+    },
+    {
+      "code": 6003,
+      "name": "NotResolved",
+      "msg": "Market is not resolved yet"
+    },
+    {
+      "code": 6004,
+      "name": "AlreadyClaimed",
+      "msg": "Already claimed winnings"
+    },
+    {
+      "code": 6005,
+      "name": "NotAWinner",
+      "msg": "Not a winning position"
+    },
+    {
+      "code": 6006,
+      "name": "AlreadyResolved",
+      "msg": "Market already resolved"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6008,
+      "name": "UnauthorizedResolver",
+      "msg": "Unauthorized resolver"
+    },
+    {
+      "code": 6009,
+      "name": "TooManyOutcomes",
+      "msg": "Too many outcomes"
+    },
+    {
+      "code": 6010,
+      "name": "OutcomeNameTooLong",
+      "msg": "Outcome name is too long"
+    },
+    {
+      "code": 6011,
+      "name": "InsufficientLiquidity",
+      "msg": "Insufficient market liquidity"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidOracleProgram",
+      "msg": "Invalid TxODDS oracle program"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidOddsProof",
+      "msg": "Invalid TxODDS odds proof"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidScoreProof",
+      "msg": "Invalid TxODDS score proof"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidOddsPrice",
+      "msg": "Invalid odds price"
+    },
+    {
+      "code": 6016,
+      "name": "TransferFailed",
+      "msg": "Native SOL transfer failed"
+    },
+    {
+      "code": 6017,
+      "name": "NotRefundable",
+      "msg": "Position is not refundable"
+    },
+    {
+      "code": 6018,
+      "name": "NotCancelled",
+      "msg": "Market has not been cancelled"
+    },
+    {
+      "code": 6019,
+      "name": "NumericOverflow",
+      "msg": "Numeric overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "BetPosition",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
+          {
+            "name": "outcome_index",
+            "type": "u8"
+          },
+          {
+            "name": "stake_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "odds_price",
+            "type": "i32"
+          },
+          {
+            "name": "payout_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "odds_message_id",
+            "type": "string"
+          },
+          {
+            "name": "odds_ts",
+            "type": "i64"
+          },
+          {
+            "name": "claimed",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BinaryExpression",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Add"
+          },
+          {
+            "name": "Subtract"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Comparison",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "GreaterThan"
+          },
+          {
+            "name": "LessThan"
+          },
+          {
+            "name": "EqualTo"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Market",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fixture_id",
+            "type": "u64"
+          },
+          {
+            "name": "market_type",
+            "type": {
+              "defined": {
+                "name": "MarketType"
+              }
+            }
+          },
+          {
+            "name": "options",
+            "type": {
+              "vec": "string"
+            }
+          },
+          {
+            "name": "outcome_stakes",
+            "type": {
+              "vec": "u64"
+            }
+          },
+          {
+            "name": "outcome_liabilities",
+            "type": {
+              "vec": "u64"
+            }
+          },
+          {
+            "name": "total_staked",
+            "type": "u64"
+          },
+          {
+            "name": "total_reserved_liability",
+            "type": "u64"
+          },
+          {
+            "name": "liquidity_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "liquidity_withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "MarketStatus"
+              }
+            }
+          },
+          {
+            "name": "winning_outcome",
+            "type": "u8"
+          },
+          {
+            "name": "close_time",
+            "type": "i64"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "team1_stat_key",
+            "type": "u32"
+          },
+          {
+            "name": "team2_stat_key",
+            "type": "u32"
+          },
+          {
+            "name": "stat_period",
+            "type": "i32"
+          },
+          {
+            "name": "resolved_ts",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Closed"
+          },
+          {
+            "name": "Resolved"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "MatchWinner"
+          },
+          {
+            "name": "TotalGoals"
+          },
+          {
+            "name": "TotalCorners"
+          },
+          {
+            "name": "TotalYellowCards"
+          },
+          {
+            "name": "BothTeamsScore"
+          },
+          {
+            "name": "FirstYellowCard"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OddsBatchSummary",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "update_stats",
+            "type": {
+              "defined": {
+                "name": "UpdateStatsU32"
+              }
+            }
+          },
+          {
+            "name": "odds_sub_tree_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "OddsProof",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ts",
+            "type": "i64"
+          },
+          {
+            "name": "odds_snapshot",
+            "type": {
+              "defined": {
+                "name": "OddsSnapshot"
+              }
+            }
+          },
+          {
+            "name": "summary",
+            "type": {
+              "defined": {
+                "name": "OddsBatchSummary"
+              }
+            }
+          },
+          {
+            "name": "sub_tree_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "main_tree_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "OddsSnapshot",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "message_id",
+            "type": "string"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          },
+          {
+            "name": "bookmaker",
+            "type": "string"
+          },
+          {
+            "name": "bookmaker_id",
+            "type": "i32"
+          },
+          {
+            "name": "super_odds_type",
+            "type": "string"
+          },
+          {
+            "name": "game_state",
+            "type": {
+              "option": "string"
+            }
+          },
+          {
+            "name": "in_running",
+            "type": "bool"
+          },
+          {
+            "name": "market_parameters",
+            "type": {
+              "option": "string"
+            }
+          },
+          {
+            "name": "market_period",
+            "type": {
+              "option": "string"
+            }
+          },
+          {
+            "name": "price_names",
+            "type": {
+              "vec": "string"
+            }
+          },
+          {
+            "name": "prices",
+            "type": {
+              "vec": "i32"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProofNode",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "is_right_sibling",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoreProof",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ts",
+            "type": "i64"
+          },
+          {
+            "name": "fixture_summary",
+            "type": {
+              "defined": {
+                "name": "ScoresBatchSummary"
+              }
+            }
+          },
+          {
+            "name": "fixture_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "main_tree_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "predicate",
+            "type": {
+              "defined": {
+                "name": "TraderPredicate"
+              }
+            }
+          },
+          {
+            "name": "stat_a",
+            "type": {
+              "defined": {
+                "name": "StatTerm"
+              }
+            }
+          },
+          {
+            "name": "stat_b",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "StatTerm"
+                }
+              }
+            }
+          },
+          {
+            "name": "op",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "BinaryExpression"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoreStat",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "key",
+            "type": "u32"
+          },
+          {
+            "name": "value",
+            "type": "i32"
+          },
+          {
+            "name": "period",
+            "type": "i32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoresBatchSummary",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "update_stats",
+            "type": {
+              "defined": {
+                "name": "UpdateStatsI32"
+              }
+            }
+          },
+          {
+            "name": "events_sub_tree_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SolVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StatTerm",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stat_to_prove",
+            "type": {
+              "defined": {
+                "name": "ScoreStat"
+              }
+            }
+          },
+          {
+            "name": "event_stat_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "stat_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TraderPredicate",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "threshold",
+            "type": "i32"
+          },
+          {
+            "name": "comparison",
+            "type": {
+              "defined": {
+                "name": "Comparison"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateStatsI32",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "update_count",
+            "type": "i32"
+          },
+          {
+            "name": "min_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "max_timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateStatsU32",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "update_count",
+            "type": "u32"
+          },
+          {
+            "name": "min_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "max_timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
