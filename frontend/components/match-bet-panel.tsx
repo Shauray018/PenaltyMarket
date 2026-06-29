@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useAppStore } from "@/lib/store";
 
 type OddsRecord = {
   PriceNames: string[];
@@ -14,17 +15,25 @@ type OddsRecord = {
 
 export function MatchBetPanel({
   fixtureId,
-  labels
+  title,
+  labels,
+  outcomeLabels,
+  marketExists = true
 }: {
   fixtureId: string;
+  title: string;
   labels: string[];
+  outcomeLabels: string[];
+  marketExists?: boolean;
 }) {
   const wallet = useWallet();
   const { connection } = useConnection();
+  const openBet = useAppStore((state) => state.openBet);
   const [selected, setSelected] = useState(0);
   const [stake, setStake] = useState(1);
   const [balance, setBalance] = useState<number | null>(null);
   const [odds, setOdds] = useState<OddsRecord | null>(null);
+  const [debug, setDebug] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,6 +116,9 @@ export function MatchBetPanel({
             />
             <span className="text-sm font-black text-white/55">SOL</span>
           </label>
+          <div className="mt-2 text-center text-sm font-black text-[var(--accent)]">
+            ${payout ? payout.toFixed(2) : "0.00"} payout if right
+          </div>
           <div className="mt-3 grid grid-cols-3 gap-3">
             <button className="dark-press-3d h-10 rounded-full text-sm font-black text-white" onClick={() => setStake((value) => value + 1)} type="button">+1</button>
             <button className="dark-press-3d h-10 rounded-full text-sm font-black text-white" onClick={() => setStake((value) => value + 5)} type="button">+5</button>
@@ -119,9 +131,31 @@ export function MatchBetPanel({
           <div className="flex justify-between py-2 text-white/55"><span>Platform Fee (1%)</span><span className="text-white">{fee.toFixed(3)} SOL</span></div>
           <div className="flex justify-between border-t border-[#1f282b] pt-4 text-white"><span>Est. Payout</span><span className="text-2xl font-black text-[var(--accent)]">{payout ? payout.toFixed(3) : "--"} SOL</span></div>
         </div>
-        <button className="press-3d h-14 rounded-[16px] bg-[var(--accent)] text-lg font-black text-[#071008]" type="button">
+        <button
+          className="press-3d h-14 rounded-[16px] bg-[var(--accent)] text-lg font-black text-[#071008]"
+          onClick={() => {
+            const payload = {
+              fixtureId,
+              title,
+              marketType: 0,
+              outcomeIndex: selected,
+              outcomeLabel: outcomeLabels[selected] ?? labels[selected] ?? `Outcome ${selected + 1}`,
+              marketExists,
+              oddsPrice: odds?.Prices?.[selected],
+              oddsMessageId: odds?.MessageId,
+              oddsTs: odds?.Ts
+            };
+            console.debug("MatchBetPanel.openBet", payload);
+            setDebug(
+              `openBet selected=${selected} price=${payload.oddsPrice ?? "none"} message=${payload.oddsMessageId ?? "none"}`
+            );
+            openBet(payload);
+          }}
+          type="button"
+        >
           Place Prediction
         </button>
+        {debug && <div className="text-center text-[11px] font-bold text-white/40">{debug}</div>}
         <div className="text-center text-xs font-black uppercase tracking-wider text-white/40">
           {odds ? `Odds update ${odds.MessageId.slice(0, 16)}...` : "Waiting for TxLINE odds"}
         </div>

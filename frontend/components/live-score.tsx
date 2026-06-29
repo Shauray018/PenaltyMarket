@@ -10,8 +10,8 @@ type ScoreResponse = {
     statusId?: number | null;
     isLive?: boolean;
     action?: string | null;
-    participant1: { goals: number; yellowCards: number; redCards: number; corners: number };
-    participant2: { goals: number; yellowCards: number; redCards: number; corners: number };
+    participant1?: { goals: number; yellowCards: number; redCards: number; corners: number };
+    participant2?: { goals: number; yellowCards: number; redCards: number; corners: number };
     unreliable?: { corners: boolean; cards: boolean };
   };
 };
@@ -52,16 +52,16 @@ function mergeEvent(summary: ScoreResponse["summary"], event: ScoreEvent): Score
     isLive: status?.live ?? summary?.isLive ?? false,
     action: event.Action ?? summary?.action ?? null,
     participant1: {
-      goals: score?.Participant1?.Total?.Goals ?? summary?.participant1.goals ?? 0,
-      yellowCards: score?.Participant1?.Total?.YellowCards ?? summary?.participant1.yellowCards ?? 0,
-      redCards: score?.Participant1?.Total?.RedCards ?? summary?.participant1.redCards ?? 0,
-      corners: score?.Participant1?.Total?.Corners ?? summary?.participant1.corners ?? 0
+      goals: score?.Participant1?.Total?.Goals ?? summary?.participant1?.goals ?? 0,
+      yellowCards: score?.Participant1?.Total?.YellowCards ?? summary?.participant1?.yellowCards ?? 0,
+      redCards: score?.Participant1?.Total?.RedCards ?? summary?.participant1?.redCards ?? 0,
+      corners: score?.Participant1?.Total?.Corners ?? summary?.participant1?.corners ?? 0
     },
     participant2: {
-      goals: score?.Participant2?.Total?.Goals ?? summary?.participant2.goals ?? 0,
-      yellowCards: score?.Participant2?.Total?.YellowCards ?? summary?.participant2.yellowCards ?? 0,
-      redCards: score?.Participant2?.Total?.RedCards ?? summary?.participant2.redCards ?? 0,
-      corners: score?.Participant2?.Total?.Corners ?? summary?.participant2.corners ?? 0
+      goals: score?.Participant2?.Total?.Goals ?? summary?.participant2?.goals ?? 0,
+      yellowCards: score?.Participant2?.Total?.YellowCards ?? summary?.participant2?.yellowCards ?? 0,
+      redCards: score?.Participant2?.Total?.RedCards ?? summary?.participant2?.redCards ?? 0,
+      corners: score?.Participant2?.Total?.Corners ?? summary?.participant2?.corners ?? 0
     }
   };
 }
@@ -72,8 +72,18 @@ function readScoreEvent(value: unknown): ScoreEvent | null {
   return maybeWrapped.Update ?? (value as ScoreEvent);
 }
 
-export function LiveScore({ fixtureId, compact = false, stream = false }: { fixtureId: string | number; compact?: boolean; stream?: boolean }) {
-  const [streamedSummary, setStreamedSummary] = useState<ScoreResponse["summary"]>();
+export function LiveScore({
+  fixtureId,
+  compact = false,
+  stream = false,
+  initialSummary
+}: {
+  fixtureId: string | number;
+  compact?: boolean;
+  stream?: boolean;
+  initialSummary?: ScoreResponse["summary"];
+}) {
+  const [streamedSummary, setStreamedSummary] = useState<ScoreResponse["summary"]>(initialSummary);
   const { data, isLoading } = useQuery<ScoreResponse>({
     queryKey: ["score", fixtureId],
     queryFn: async () => {
@@ -81,7 +91,9 @@ export function LiveScore({ fixtureId, compact = false, stream = false }: { fixt
       if (!response.ok) throw new Error("Unable to load score.");
       return response.json();
     },
-    refetchInterval: 10_000,
+    initialData: initialSummary ? { summary: initialSummary } : undefined,
+    enabled: stream,
+    refetchInterval: stream ? 10_000 : false,
     retry: false
   });
 
@@ -94,7 +106,7 @@ export function LiveScore({ fixtureId, compact = false, stream = false }: { fixt
         const event = readScoreEvent(JSON.parse(message.data));
         if (!event) return;
         if (String(event.FixtureId) !== String(fixtureId)) return;
-        setStreamedSummary((current) => mergeEvent(current ?? data?.summary, event));
+        setStreamedSummary((current) => mergeEvent(current ?? data?.summary ?? initialSummary, event));
       } catch {
         // Ignore heartbeat or non-JSON SSE frames.
       }
@@ -102,18 +114,18 @@ export function LiveScore({ fixtureId, compact = false, stream = false }: { fixt
 
     eventSource.onerror = () => eventSource.close();
     return () => eventSource.close();
-  }, [data?.summary, fixtureId, stream]);
+  }, [data?.summary, fixtureId, initialSummary, stream]);
 
-  const score = streamedSummary ?? data?.summary;
+  const score = streamedSummary ?? data?.summary ?? initialSummary;
 
-  if (isLoading) return <span className="text-sm text-[var(--muted)]">Loading score</span>;
+  if (stream && isLoading) return <span className="text-sm text-[var(--muted)]">Loading score</span>;
   if (!score) return <span className="text-sm text-[var(--muted)]">Score unavailable</span>;
 
   return (
     <div className={compact ? "text-sm" : "grid gap-3"}>
       <div className="flex items-center gap-2">
         <span className="font-semibold">
-          {score.participant1.goals} - {score.participant2.goals}
+          {score.participant1?.goals ?? 0} - {score.participant2?.goals ?? 0}
         </span>
         <span className="text-[var(--muted)]">{score.status?.label ?? score.latest?.GameState ?? "No status"}</span>
       </div>
@@ -121,15 +133,15 @@ export function LiveScore({ fixtureId, compact = false, stream = false }: { fixt
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="rounded-md border border-[var(--border)] p-3">
             <div className="text-[var(--muted)]">Team 1</div>
-            <div>Corners {score.participant1.corners}</div>
-            <div>Yellow cards {score.participant1.yellowCards}</div>
-            <div>Red cards {score.participant1.redCards}</div>
+            <div>Corners {score.participant1?.corners ?? 0}</div>
+            <div>Yellow cards {score.participant1?.yellowCards ?? 0}</div>
+            <div>Red cards {score.participant1?.redCards ?? 0}</div>
           </div>
           <div className="rounded-md border border-[var(--border)] p-3">
             <div className="text-[var(--muted)]">Team 2</div>
-            <div>Corners {score.participant2.corners}</div>
-            <div>Yellow cards {score.participant2.yellowCards}</div>
-            <div>Red cards {score.participant2.redCards}</div>
+            <div>Corners {score.participant2?.corners ?? 0}</div>
+            <div>Yellow cards {score.participant2?.yellowCards ?? 0}</div>
+            <div>Red cards {score.participant2?.redCards ?? 0}</div>
           </div>
           {score.action && <div className="col-span-2 text-[var(--muted)]">Last event: {score.action}</div>}
         </div>

@@ -25,6 +25,8 @@ export type FixtureItem = {
     bettingClosed: boolean;
     msUntilStart: number;
   };
+  primaryOdds?: OddsRecord | null;
+  matchWinnerMarket?: MarketItem | null;
 };
 
 export type MarketItem = {
@@ -39,6 +41,8 @@ export type MarketItem = {
     totalReservedLiability?: string;
     liquidityDeposited?: string;
     liquidityWithdrawn?: string;
+    traderCount?: number;
+    positionCount?: number;
     status?: Record<string, unknown>;
     closeTime?: string;
   };

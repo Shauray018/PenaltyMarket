@@ -24,6 +24,21 @@ export const accounts = program.account as anchor.Program["account"] & {
   };
 };
 
+export async function fetchMarketAccount(address: PublicKey) {
+  try {
+    const account = await accounts.market.fetchNullable(address);
+    if (account) return account;
+  } catch {
+    // Fall back to a raw account read below. Some RPC/Anchor decode failures should not
+    // make an initialized market disappear from the app.
+  }
+
+  const raw = await connection.getAccountInfo(address);
+  if (!raw) return null;
+
+  return program.coder.accounts.decode("market", raw.data) as Record<string, unknown>;
+}
+
 export function marketPda(fixtureId: number | bigint, marketType: number) {
   const fixture = Buffer.alloc(8);
   fixture.writeBigUInt64LE(BigInt(fixtureId));

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Clock3, Flame, Search, ShieldCheck, Trophy, Users } from "lucide-react";
-import { BetDialog } from "@/components/bet-dialog";
 import { Button } from "@/components/ui";
 import { flagUrlForTeam } from "@/lib/flags";
 import { formatSol } from "@/lib/format";
@@ -68,7 +67,6 @@ export function MarketBoard() {
           <MarketsSidebar />
         </div>
       </div>
-      <BetDialog />
     </>
   );
 }
@@ -200,26 +198,16 @@ function FilterBar({ query, setQuery }: { query: string; setQuery: (query: strin
 }
 
 function MarketTile({ fixture }: { fixture: FixtureItem }) {
-  const loadMarkets = useAppStore((state) => state.loadMarkets);
-  const loadOdds = useAppStore((state) => state.loadOdds);
   const openBet = useAppStore((state) => state.openBet);
-  const markets = useAppStore((state) => state.marketsByFixture[String(fixture.fixtureId)]);
-  const odds = useAppStore((state) => state.oddsByFixture[String(fixture.fixtureId)]);
-
-  useEffect(() => {
-    loadMarkets(String(fixture.fixtureId)).catch(() => undefined);
-    loadOdds(String(fixture.fixtureId)).catch(() => undefined);
-    const interval = window.setInterval(() => loadOdds(String(fixture.fixtureId), true).catch(() => undefined), 30_000);
-    return () => window.clearInterval(interval);
-  }, [fixture.fixtureId, loadMarkets, loadOdds]);
-
-  const matchWinner = markets?.find((market) => market.marketType.index === 0);
+  const matchWinner = fixture.matchWinnerMarket ?? null;
+  const odds = fixture.primaryOdds ?? null;
   const options = odds?.PriceNames?.length
     ? odds.PriceNames.map((name) => labelPriceName(name, fixture))
     : matchWinner?.account?.options?.length
       ? matchWinner.account.options
       : [fixture.participant1, "Draw", fixture.participant2];
-  const pool = matchWinner?.account?.totalStaked ?? "0";
+  const pool = displayPoolLamports(matchWinner?.account);
+  const traderCount = matchWinner?.account?.traderCount ?? 0;
   const title = `${fixture.participant1} vs ${fixture.participant2}`;
   const flag1 = flagUrlForTeam(fixture.participant1, 64);
   const flag2 = flagUrlForTeam(fixture.participant2, 64);
@@ -248,7 +236,7 @@ function MarketTile({ fixture }: { fixture: FixtureItem }) {
         {options.slice(0, 3).map((option, index) => (
           <button
             key={`${fixture.fixtureId}-${option}`}
-            className="dark-press-3d h-14 rounded-[14px] bg-[#0b0f12] text-center transition hover:bg-[#111a15]"
+            className="dark-press-3d h-14 rounded-[14px] bg-[#0b1118] text-center transition hover:bg-[#111c28]"
             onClick={() =>
               openBet({
                 fixtureId: String(fixture.fixtureId),
@@ -277,7 +265,7 @@ function MarketTile({ fixture }: { fixture: FixtureItem }) {
           </div>
           <div className="flex items-center text-xs font-bold text-white/65">
             <Users className="mr-1 h-4 w-4 text-[var(--accent)]" />
-            +{(Number(fixture.fixtureId) % 120) + 12} others
+            {traderCount} traders
           </div>
         </div>
         <button
@@ -382,6 +370,23 @@ function MarketsSidebar() {
 function formatDecimalOdds(price?: number) {
   if (!price || price <= 0) return "--";
   return (price / 1000).toFixed(2);
+}
+
+function displayPoolLamports(
+  account:
+    | {
+        totalStaked?: string;
+        liquidityDeposited?: string;
+        liquidityWithdrawn?: string;
+      }
+    | null
+    | undefined
+) {
+  const totalStaked = BigInt(account?.totalStaked ?? "0");
+  const deposited = BigInt(account?.liquidityDeposited ?? "0");
+  const withdrawn = BigInt(account?.liquidityWithdrawn ?? "0");
+  const liquidity = deposited > withdrawn ? deposited - withdrawn : 0n;
+  return totalStaked + liquidity;
 }
 
 function formatShortCountdown(startTime: number) {

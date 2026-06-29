@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { TXLINE_BASE_URL } from "@/lib/constants";
+import { TXLINE_BASE_URL, TXLINE_PROOF_BASE_URL } from "@/lib/constants";
 
 export type TxLineFixture = {
   fixtureId?: number;
@@ -125,6 +125,24 @@ export async function txlineFetch<T>(path: string, init?: RequestInit): Promise<
   if (!response.ok) {
     const detail = await response.text();
     throw new Error(`TxLINE ${response.status}: ${detail || response.statusText}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+export async function txlineProofFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${TXLINE_PROOF_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      ...txlineHeaders(),
+      ...(init?.headers ?? {})
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`TxLINE proof ${response.status}: ${detail || response.statusText}`);
   }
 
   return response.json() as Promise<T>;

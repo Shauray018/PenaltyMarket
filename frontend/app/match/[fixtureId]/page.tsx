@@ -15,6 +15,7 @@ type MarketAccount = {
   outcomeStakes?: string[];
   totalStaked?: string;
   liquidityDeposited?: string;
+  liquidityWithdrawn?: string;
   status?: Record<string, unknown>;
   closeTime?: string;
 };
@@ -95,10 +96,11 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
   const away = matchWinner?.account?.options?.[2] ?? fixture?.participant2 ?? "Team 2";
   const options = [home, "Draw", away];
   const outcomeLabels = [teamCode(home), "DRAW", teamCode(away)];
+  const title = `${home} vs ${away}`;
   const closeTimes = data.markets.map((market) => Number(market.account?.closeTime ?? 0) * 1000).filter(Boolean);
   const kickoffEstimate = closeTimes.length ? Math.min(...closeTimes) + 5 * 60 * 1000 : score.summary?.latest?.StartTime;
   const timing = marketTiming(kickoffEstimate);
-  const pool = matchWinner?.account?.totalStaked ?? "0";
+  const pool = displayPoolLamports(matchWinner?.account);
   const stakes = matchWinner?.account?.outcomeStakes ?? ["0", "0", "0"];
   const bestOdds = bestDisplayOdds(stakes);
   const activeForOdds = Boolean(score.summary?.isLive || score.summary?.status?.phase === "break" || fixture?.isLive || fixture?.phase === "break");
@@ -106,13 +108,13 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
 
   return (
     <div className="grid gap-9">
-      <nav className="flex items-center gap-3 text-sm font-black text-white/55">
+      {/* <nav className="flex items-center gap-3 text-sm font-black text-white/55">
         <Link href="/" className="hover:text-[var(--accent)]">Markets</Link>
         <ArrowRight className="h-4 w-4" />
         <span>Premier League</span>
         <ArrowRight className="h-4 w-4" />
         <span className="text-[var(--accent)]">Match #{fixtureId}</span>
-      </nav>
+      </nav> */}
 
       <section className={`soft-panel relative overflow-hidden p-10 md:p-16 ${activeForOdds ? "live-shimmer" : ""}`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.08),transparent_36%)]" />
@@ -123,7 +125,7 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
           </div>
           <div className="grid items-center gap-8 md:grid-cols-[1fr_160px_1fr]">
             <TeamBlock name={home} />
-            <LiveMatchScoreboard fixtureId={fixtureId} initialSummary={score.summary} />
+            <LiveMatchScoreboard fixtureId={fixtureId} initialSummary={score.summary} active={Boolean(score.summary?.isLive)} />
             <TeamBlock name={away} />
           </div>
           <div className="text-base font-bold text-white/55">
@@ -170,14 +172,20 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
         </main>
 
         <aside className="grid h-fit gap-8">
-          <MatchBetPanel fixtureId={fixtureId} labels={outcomeLabels} />
+          <MatchBetPanel
+            fixtureId={fixtureId}
+            title={title}
+            labels={outcomeLabels}
+            outcomeLabels={options}
+            marketExists={Boolean(matchWinner?.exists)}
+          />
 
           <section className="soft-panel p-5">
             <h2 className="mb-4 text-lg font-black text-white">Live Score</h2>
-            <LiveScore fixtureId={fixtureId} stream />
+            <LiveScore fixtureId={fixtureId} initialSummary={score.summary} stream={Boolean(score.summary?.isLive)} />
           </section>
 
-          <LiveEventFeed fixtureId={fixtureId} />
+          <LiveEventFeed fixtureId={fixtureId} active={Boolean(score.summary?.isLive)} />
         </aside>
       </div>
 
@@ -201,6 +209,14 @@ function TeamBlock({ name }: { name: string }) {
       <h1 className="text-4xl font-black text-white">{name}</h1>
     </div>
   );
+}
+
+function displayPoolLamports(account: MarketAccount | null | undefined) {
+  const totalStaked = BigInt(account?.totalStaked ?? "0");
+  const deposited = BigInt(account?.liquidityDeposited ?? "0");
+  const withdrawn = BigInt(account?.liquidityWithdrawn ?? "0");
+  const liquidity = deposited > withdrawn ? deposited - withdrawn : 0n;
+  return (totalStaked + liquidity).toString();
 }
 
 function CountdownPill({ startTime }: { startTime?: number }) {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Globe2, ShieldCheck, Trophy } from "lucide-react";
+import { BetDialog } from "@/components/bet-dialog";
 import { Providers } from "@/components/providers";
 import { WalletButton } from "@/components/wallet-button";
 import "./globals.css";
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </header>
             <main className="mx-auto max-w-[1470px] px-8 py-9">{children}</main>
+            <BetDialog />
             <footer className="footer-shell mt-16">
               <div className="mx-auto grid max-w-[1470px] gap-10 px-5 py-12 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
                 <div>

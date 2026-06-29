@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const positions = await Promise.all(
       positionAccounts.map(async ({ pubkey, account }) => {
-        const position = program.coder.accounts.decode("BetPosition", account.data);
+        const position = program.coder.accounts.decode("betPosition", account.data);
         const marketKey = position.market as PublicKey;
         const market = await accounts.market.fetchNullable(marketKey);
 

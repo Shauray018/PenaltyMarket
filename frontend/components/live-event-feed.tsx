@@ -36,12 +36,19 @@ type FeedItem =
 
 const MAX_ITEMS = 24;
 
-export function LiveEventFeed({ fixtureId }: { fixtureId: string | number }) {
+export function LiveEventFeed({ fixtureId, active = false }: { fixtureId: string | number; active?: boolean }) {
   const [items, setItems] = useState<FeedItem[]>([]);
-  const [connectionState, setConnectionState] = useState<"connecting" | "connected" | "disconnected">("connecting");
+  const [connectionState, setConnectionState] = useState<"idle" | "connecting" | "connected" | "disconnected">(active ? "connecting" : "idle");
   const seen = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    if (!active) {
+      setConnectionState("idle");
+      setItems([]);
+      seen.current.clear();
+      return;
+    }
+
     setConnectionState("connecting");
     setItems([]);
     seen.current.clear();
@@ -85,7 +92,7 @@ export function LiveEventFeed({ fixtureId }: { fixtureId: string | number }) {
     });
 
     return () => eventSource.close();
-  }, [fixtureId]);
+  }, [active, fixtureId]);
 
   const events = useMemo(() => items.filter((item) => item.kind === "event").length, [items]);
 
@@ -115,7 +122,7 @@ export function LiveEventFeed({ fixtureId }: { fixtureId: string | number }) {
           </div>
         ) : (
           <div className="rounded-[14px] border border-[#1c2426] bg-black p-5 text-sm font-bold text-white/50">
-            Waiting for live TxLINE score events...
+            {active ? "Waiting for live TxLINE score events..." : "Live feed starts when the match goes live."}
           </div>
         )}
       </div>
@@ -179,15 +186,18 @@ function HeartbeatRow({ item }: { item: Extract<FeedItem, { kind: "heartbeat" }>
   );
 }
 
-function ConnectionPill({ state }: { state: "connecting" | "connected" | "disconnected" }) {
+function ConnectionPill({ state }: { state: "idle" | "connecting" | "connected" | "disconnected" }) {
   const connected = state === "connected";
   const connecting = state === "connecting";
+  const idle = state === "idle";
 
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-black ${
         connected
           ? "bg-[#0b2b17] text-[var(--accent)]"
+          : idle
+            ? "bg-[#171d1a] text-white/45"
           : connecting
             ? "bg-[#272314] text-[var(--gold)]"
             : "bg-[#32131a] text-[#ff687d]"

@@ -52,10 +52,12 @@ const STATUS_LABELS: Record<number, { name: string; label: string; live: boolean
 
 export function LiveMatchScoreboard({
   fixtureId,
-  initialSummary
+  initialSummary,
+  active = false
 }: {
   fixtureId: string | number;
   initialSummary?: ScoreSummary;
+  active?: boolean;
 }) {
   const [streamedSummary, setStreamedSummary] = useState<ScoreSummary | undefined>(initialSummary);
   const [clockBase, setClockBase] = useState<{ seconds: number; running: boolean; receivedAt: number } | null>(() => {
@@ -74,7 +76,8 @@ export function LiveMatchScoreboard({
       return response.json();
     },
     initialData: initialSummary ? { summary: initialSummary } : undefined,
-    refetchInterval: 10_000,
+    enabled: active,
+    refetchInterval: active ? 10_000 : false,
     retry: false
   });
 
@@ -90,6 +93,8 @@ export function LiveMatchScoreboard({
   }, [data?.summary]);
 
   useEffect(() => {
+    if (!active) return;
+
     const eventSource = new EventSource(`/api/scores/stream?fixtureId=${fixtureId}`);
 
     eventSource.onmessage = (message) => {
@@ -106,7 +111,7 @@ export function LiveMatchScoreboard({
     };
 
     return () => eventSource.close();
-  }, [data?.summary, fixtureId, initialSummary]);
+  }, [active, data?.summary, fixtureId, initialSummary]);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000);

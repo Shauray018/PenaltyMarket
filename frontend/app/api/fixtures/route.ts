@@ -1,6 +1,18 @@
+import { PublicKey } from "@solana/web3.js";
 import { NextResponse } from "next/server";
+import { MARKET_TYPES } from "@/lib/constants";
 import { marketTiming } from "@/lib/market-policy";
-import { normalizeFixture, statusInfo, summarizeScore, txlineError, txlineFetch, type TxLineFixture, type TxLineScoreSnapshot } from "@/lib/txline";
+import { connection, fetchMarketAccount, marketPda, program, programId, serializeAccount } from "@/lib/solana";
+import {
+  normalizeFixture,
+  statusInfo,
+  summarizeScore,
+  txlineError,
+  txlineFetch,
+  type TxLineFixture,
+  type TxLineOddsRecord,
+  type TxLineScoreSnapshot
+} from "@/lib/txline";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,8 +72,112 @@ export async function GET() {
         return Number(a.startTime ?? 0) - Number(b.startTime ?? 0);
       });
 
-    return NextResponse.json({ fixtures: visible });
+    const enriched = await Promise.all(
+      visible.map(async (fixture) => {
+        const fixtureId = Number(fixture.fixtureId);
+        const [primaryOdds, matchWinnerMarket] = await Promise.all([
+          loadPrimaryOdds(fixtureId),
+          loadMatchWinnerMarket(fixtureId)
+        ]);
+
+        return {
+          ...fixture,
+          primaryOdds,
+          matchWinnerMarket
+        };
+      })
+    );
+
+    return NextResponse.json({ fixtures: enriched });
   } catch (error) {
     return txlineError(error);
   }
+}
+
+async function loadPrimaryOdds(fixtureId: number) {
+  try {
+    const odds = await txlineFetch<TxLineOddsRecord[]>(`/api/odds/updates/${fixtureId}`);
+    return pickPrimaryOdds(odds);
+  } catch {
+    return null;
+  }
+}
+
+async function loadMatchWinnerMarket(fixtureId: number) {
+  const matchWinnerType = MARKET_TYPES.find((marketType) => marketType.index === 0);
+  if (!matchWinnerType) return null;
+
+  const [publicKey] = marketPda(BigInt(fixtureId), matchWinnerType.index);
+
+  try {
+    const account = await fetchMarketAccount(publicKey);
+    if (!account) {
+      return {
+        publicKey: publicKey.toBase58(),
+        marketType: matchWinnerType,
+        exists: false,
+        account: null
+      };
+    }
+
+    const { traderCount, positionCount } = await loadTraderCounts(publicKey);
+
+    return {
+      publicKey: publicKey.toBase58(),
+      marketType: matchWinnerType,
+      exists: true,
+      account: {
+        ...(serializeAccount(account) as Record<string, unknown>),
+        traderCount,
+        positionCount
+      }
+    };
+  } catch (error) {
+    return {
+      publicKey: publicKey.toBase58(),
+      marketType: matchWinnerType,
+      exists: false,
+      account: null,
+      error: error instanceof Error ? error.message : "Unable to read market."
+    };
+  }
+}
+
+async function loadTraderCounts(market: PublicKey) {
+  try {
+    const positionAccounts = await connection.getProgramAccounts(programId, {
+      filters: [{ memcmp: { offset: 8, bytes: market.toBase58() } }]
+    });
+
+    const traders = new Set<string>();
+    for (const { account: raw } of positionAccounts) {
+      try {
+        const position = program.coder.accounts.decode("betPosition", raw.data) as { user: PublicKey };
+        traders.add(position.user.toBase58());
+      } catch {
+        // Keep the market visible even if one historical position account cannot decode.
+      }
+    }
+
+    return { traderCount: traders.size, positionCount: positionAccounts.length };
+  } catch {
+    return { traderCount: 0, positionCount: 0 };
+  }
+}
+
+function pickPrimaryOdds(odds: TxLineOddsRecord[]) {
+  return odds.find(isExactFullTimeThreeWay) ?? null;
+}
+
+function isExactFullTimeThreeWay(record: TxLineOddsRecord) {
+  const type = record.SuperOddsType.toUpperCase();
+  const priceNames = record.PriceNames.map((name) => name.toLowerCase());
+  return (
+    type === "1X2_PARTICIPANT_RESULT" &&
+    !record.MarketPeriod &&
+    priceNames.length === 3 &&
+    priceNames[0] === "part1" &&
+    priceNames[1] === "draw" &&
+    priceNames[2] === "part2"
+  );
 }

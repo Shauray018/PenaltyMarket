@@ -9,7 +9,10 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "keeper:init-markets": "NODE_OPTIONS=--no-addons node ../keeper/initialize-market.mjs",
+    "keeper:init-fixtures": "NODE_OPTIONS=--no-addons node ../keeper/initialize-market.mjs",
     "keeper:init-markets:dry": "NODE_OPTIONS=--no-addons DRY_RUN=1 node ../keeper/initialize-market.mjs",
+    "keeper:create-bet-alt": "NODE_OPTIONS=--no-addons node ../keeper/create-bet-lookup-table.mjs",
+    "keeper:fund-market": "NODE_OPTIONS=--no-addons node ../keeper/fund-market.mjs",
     "mint:usdc": "NODE_OPTIONS=--no-addons node ../keeper/mint-usdc.mjs"
   },
   "dependencies": {

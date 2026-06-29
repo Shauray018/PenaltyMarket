@@ -2,6 +2,7 @@ export const PROGRAM_ID = "V1qrv6Cc4q9vkAFZR8fsAo7LFKUNJ4bHCdWX2AxxDNA";
 export const USDC_MINT = "2SHyVFdoYrUaQ6Ns9FmNf28RSt1TJ6tXFwLEGmbBnqmM";
 export const USDC_DECIMALS = 6;
 export const TXLINE_BASE_URL = process.env.TXLINE_BASE_URL ?? "https://txline.txodds.com";
+export const TXLINE_PROOF_BASE_URL = process.env.TXLINE_PROOF_BASE_URL ?? TXLINE_BASE_URL;
 export const SOLANA_RPC_URL =
   process.env.SOLANA_RPC_URL ?? process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 
