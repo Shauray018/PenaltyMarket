@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import Link from "next/link";
-import { ArrowRight, Clock3, ShieldCheck, Trophy, TrendingUp, Users, WalletCards, Zap } from "lucide-react";
+import { Activity, ArrowLeft, CalendarClock, CircleDollarSign, Flag, ShieldCheck, Trophy, Users } from "lucide-react";
 import { LiveEventFeed } from "@/components/live-event-feed";
 import { LiveMatchScoreboard } from "@/components/live-match-scoreboard";
 import { LiveOddsChart } from "@/components/live-odds-chart";
@@ -16,6 +16,7 @@ type MarketAccount = {
   totalStaked?: string;
   liquidityDeposited?: string;
   liquidityWithdrawn?: string;
+  traderCount?: number;
   status?: Record<string, unknown>;
   closeTime?: string;
 };
@@ -102,76 +103,89 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
   const timing = marketTiming(kickoffEstimate);
   const pool = displayPoolLamports(matchWinner?.account);
   const stakes = matchWinner?.account?.outcomeStakes ?? ["0", "0", "0"];
-  const bestOdds = bestDisplayOdds(stakes);
   const activeForOdds = Boolean(score.summary?.isLive || score.summary?.status?.phase === "break" || fixture?.isLive || fixture?.phase === "break");
   const status = score.summary?.status ?? fixture?.status;
 
   return (
-    <div className="grid gap-9">
-      {/* <nav className="flex items-center gap-3 text-sm font-black text-white/55">
-        <Link href="/" className="hover:text-[var(--accent)]">Markets</Link>
-        <ArrowRight className="h-4 w-4" />
-        <span>Premier League</span>
-        <ArrowRight className="h-4 w-4" />
-        <span className="text-[var(--accent)]">Match #{fixtureId}</span>
-      </nav> */}
+    <div className="grid gap-3">
+      <Link href="/" className="win95-button w-fit">
+        <ArrowLeft className="h-4 w-4" />
+        Markets
+      </Link>
 
-      <section className={`soft-panel relative overflow-hidden p-10 md:p-16 ${activeForOdds ? "live-shimmer" : ""}`}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.08),transparent_36%)]" />
-        <div className="relative grid gap-10 text-center">
-          <div className="mx-auto flex items-center gap-2 rounded-full bg-[#23282b] px-5 py-2 text-xs font-black text-white/70">
-            {activeForOdds && <span className="live-dot" />}
-            {status?.label ?? fixture?.phase ?? "Match"} • Fixture {fixtureId}
+      <section className="win95-window overflow-hidden">
+        <div className="win95-titlebar">
+          <span>{activeForOdds ? "LIVE_MATCH.EXE" : "MATCH_FILE.EXE"}</span>
+          <span className={activeForOdds ? "market-live px-1.5 py-0.5 text-[10px] font-black" : "market-open px-1.5 py-0.5 text-[10px] font-black"}>
+            {status?.name ?? fixture?.phase ?? "READY"}
+          </span>
+        </div>
+        <div className="relative overflow-hidden bg-[#0a6f18] p-3 text-white">
+          <div className="absolute inset-0 opacity-30">
+            <div className="h-full w-full bg-[linear-gradient(90deg,rgba(255,255,255,.28)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.22)_1px,transparent_1px)] bg-[size:32px_32px]" />
           </div>
-          <div className="grid items-center gap-8 md:grid-cols-[1fr_160px_1fr]">
-            <TeamBlock name={home} />
-            <LiveMatchScoreboard fixtureId={fixtureId} initialSummary={score.summary} active={Boolean(score.summary?.isLive)} />
-            <TeamBlock name={away} />
-          </div>
-          <div className="text-base font-bold text-white/55">
-            {kickoffEstimate ? `${formatKickoff(kickoffEstimate)} • ` : ""}Fixture {fixtureId}
-            {score.summary?.latest?.GameState ? ` • ${score.summary.latest.GameState}` : ""}
+          <div className="relative grid gap-3 text-center">
+            <div className="mx-auto inline-flex items-center gap-2 bg-[#c0c0c0] px-2 py-1 text-[11px] font-black uppercase text-black">
+              {activeForOdds && <span className="blink-dot" />}
+              Fixture {fixtureId} - {status?.label ?? "Match Terminal"}
+            </div>
+            <div className="grid grid-cols-[1fr_112px_1fr] items-center gap-2">
+              <TeamBlock name={home} align="right" />
+              <LiveMatchScoreboard fixtureId={fixtureId} initialSummary={score.summary} active={Boolean(score.summary?.isLive)} />
+              <TeamBlock name={away} />
+            </div>
+            <div className="mx-auto max-w-xs text-xs font-black uppercase leading-5 [text-shadow:1px_1px_0_#003b16]">
+              {kickoffEstimate ? `${formatKickoff(kickoffEstimate)} - ` : ""}
+              {score.summary?.latest?.GameState ?? (timing.bettingClosed ? "Betting Closed" : "Kickoff Soon")}
+            </div>
           </div>
         </div>
       </section>
 
-
-      <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
-        <main className="grid gap-8">
-          {/* <section>
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-2xl font-black text-white">
-                <Zap className="h-6 w-6 text-[var(--accent)]" />
-                Market Outcomes
-              </h2>
-              <div className="text-sm font-black text-white/55">
-                Pool Closure: {timing.bettingClosed ? "Closed" : "Before kickoff"}
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_300px]">
+        <main className="grid gap-3">
+          <section className="win95-window">
+            <div className="win95-titlebar">
+              <span>POOL_SPLIT.EXE</span>
+            </div>
+            <div className="win95-window-body grid gap-3">
+              <div className="grid grid-cols-3 gap-2">
+                <StatCard icon={<CircleDollarSign className="h-4 w-4" />} label="Pool" value={formatSol(pool)} />
+                <StatCard icon={<Users className="h-4 w-4" />} label="Refs" value={String(matchWinner?.account?.traderCount ?? 0)} />
+                <StatCard icon={<CalendarClock className="h-4 w-4" />} label="Window" value={timing.bettingClosed ? "Closed" : "Open"} />
               </div>
+              <PoolSplit options={options} stakes={stakes} />
             </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {options.slice(0, 3).map((option, index) => (
-                <OutcomeCard key={option} option={option} stake={stakes[index] ?? "0"} selected={index === 0} />
-              ))}
+          </section>
+
+          <section className="win95-window">
+            <div className="win95-titlebar">
+              <span>ODDS_SCOPE.EXE</span>
+              <span className="text-[10px] font-black">{activeForOdds ? "STREAM" : "SNAPSHOT"}</span>
             </div>
-          </section> */}
+            <div className="win95-window-body">
+              <LiveOddsChart fixtureId={fixtureId} home={home} away={away} active={activeForOdds} />
+            </div>
+          </section>
 
-          <LiveOddsChart fixtureId={fixtureId} home={home} away={away} active={activeForOdds} />
-
-          <section className="soft-panel p-6">
-            <h2 className="mb-6 flex items-center gap-2 text-xl font-black text-white">
-              <ShieldCheck className="h-5 w-5 text-white/50" />
-              Market Rules & Settlement
-            </h2>
-            <div className="grid gap-4 text-sm font-bold text-white/55 md:grid-cols-2">
-              <p>• Settlement based on final score validated by TxODDS proofs.</p>
-              <p>• Pool stays open until official kickoff buffer closes.</p>
-              <p>• Payouts are processed instantly via smart contract.</p>
-              <p>• Minimum stake: 0.01 SOL.</p>
+          <section className="win95-window">
+            <div className="win95-titlebar">
+              <span>RULEBOOK.TXT</span>
+            </div>
+            <div className="win95-window-body grid gap-2 text-xs font-bold leading-5 text-[var(--muted)]">
+              <p className="flex gap-2">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#000080]" />
+                Settlement uses final score validation with TxODDS proofs.
+              </p>
+              <p className="flex gap-2">
+                <Flag className="mt-0.5 h-4 w-4 shrink-0 text-[#000080]" />
+                Pools close around official kickoff and claims unlock after resolution.
+              </p>
             </div>
           </section>
         </main>
 
-        <aside className="grid h-fit gap-8">
+        <aside className="grid h-fit gap-3">
           <MatchBetPanel
             fixtureId={fixtureId}
             title={title}
@@ -180,33 +194,71 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
             marketExists={Boolean(matchWinner?.exists)}
           />
 
-          <section className="soft-panel p-5">
-            <h2 className="mb-4 text-lg font-black text-white">Live Score</h2>
-            <LiveScore fixtureId={fixtureId} initialSummary={score.summary} stream={Boolean(score.summary?.isLive)} />
+          <section className="win95-window">
+            <div className="win95-titlebar">
+              <span>SCORE.EXE</span>
+            </div>
+            <div className="win95-window-body">
+              <LiveScore fixtureId={fixtureId} initialSummary={score.summary} stream={Boolean(score.summary?.isLive)} />
+            </div>
           </section>
 
           <LiveEventFeed fixtureId={fixtureId} active={Boolean(score.summary?.isLive)} />
         </aside>
       </div>
-
-      <Link href="/" className="mt-8 flex items-center gap-2 text-sm font-black text-white/70">Back to Markets <ArrowRight className="h-4 w-4" /></Link>
     </div>
   );
 }
 
-function TeamBlock({ name }: { name: string }) {
+function TeamBlock({ name, align = "left" }: { name: string; align?: "left" | "right" }) {
   const flag = flagUrlForTeam(name, 64);
 
   return (
-    <div className="grid justify-items-center gap-5">
-      <div className="grid h-18 overflow-hidden w-24 place-items-center rounded-2xl  bg-[#171b1d]">
+    <div className={`grid gap-1 ${align === "right" ? "justify-items-end text-right" : "justify-items-start text-left"}`}>
+      <div className="grid h-12 w-16 place-items-center overflow-hidden border-2 border-white bg-[#c0c0c0] shadow-[2px_2px_0_rgba(0,0,0,.35)]">
         {flag ? (
-          <img alt={`${name} flag`} className="h-30 w-24 rounded-md -mt-6" src={flag} />
+          <img alt={`${name} flag`} className="h-full w-full object-cover" src={flag} />
         ) : (
-          <div className="grid h-16 w-16 place-items-center bg-white text-xs font-black text-black">{name.slice(0, 3).toUpperCase()}</div>
+          <div className="grid h-full w-full place-items-center text-xs font-black text-black">{teamCode(name)}</div>
         )}
       </div>
-      <h1 className="text-4xl font-black text-white">{name}</h1>
+      <h1 className="max-w-[120px] text-lg font-black uppercase leading-5 [text-shadow:2px_2px_0_#003b16]">{name}</h1>
+    </div>
+  );
+}
+
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="win95-panel-inset min-w-0 bg-white p-2">
+      <div className="flex items-center gap-1 text-[10px] font-black uppercase text-[var(--muted)]">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-1 truncate text-sm font-black text-[#000080]">{value}</div>
+    </div>
+  );
+}
+
+function PoolSplit({ options, stakes }: { options: string[]; stakes: string[] }) {
+  const total = stakes.reduce((sum, stake) => sum + BigInt(stake || "0"), 0n);
+
+  return (
+    <div className="grid gap-2">
+      {options.map((option, index) => {
+        const stake = BigInt(stakes[index] ?? "0");
+        const percent = total > 0n ? Number((stake * 10_000n) / total) / 100 : index === 1 ? 20 : 40;
+        return (
+          <div className="grid gap-1" key={`${option}-${index}`}>
+            <div className="flex items-center justify-between gap-2 text-xs font-black">
+              <span className="truncate">{option}</span>
+              <span>{percent.toFixed(1)}%</span>
+            </div>
+            <div className="win95-progress">
+              <div className="win95-progress-fill" style={{ width: `${Math.max(4, percent)}%` }} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -217,58 +269,6 @@ function displayPoolLamports(account: MarketAccount | null | undefined) {
   const withdrawn = BigInt(account?.liquidityWithdrawn ?? "0");
   const liquidity = deposited > withdrawn ? deposited - withdrawn : 0n;
   return (totalStaked + liquidity).toString();
-}
-
-function CountdownPill({ startTime }: { startTime?: number }) {
-  const label = startTime ? formatDuration(Number(startTime) - Date.now()) : "04:22:15";
-  return (
-    <div className="inline-flex items-center gap-2 rounded-[14px] bg-[var(--accent)] px-6 py-3 text-xl font-black text-[#071008]">
-      <Clock3 className="h-5 w-5" />
-      {label}
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <section className="soft-panel flex items-center gap-5 p-6">
-      <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-[#080c0d]">{icon}</div>
-      <div>
-        <div className="text-xs font-black uppercase tracking-wider text-white/45">{label}</div>
-        <div className="text-2xl font-black text-white">{value}</div>
-      </div>
-    </section>
-  );
-}
-
-function OutcomeCard({ option, stake, selected }: { option: string; stake: string; selected?: boolean }) {
-  return (
-    <section className={`rounded-[18px] border p-6 ${selected ? "border-[var(--accent)] bg-[#06130b]" : "border-[#283135] bg-black"}`}>
-      <div className="text-xs font-black uppercase tracking-wider text-white/45">{option}</div>
-      <div className="mt-2 text-4xl font-black text-white">{stake === "0" ? "2.4x" : "Live"}</div>
-      <div className="mt-8 border-t border-[#20282b] pt-4">
-        <div className="flex justify-between text-xs font-black uppercase text-white/45">
-          <span>Staked</span>
-          <span className="text-white">{formatSol(stake)}</span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function bestDisplayOdds(stakes: string[]) {
-  const total = stakes.reduce((sum, item) => sum + Number(item), 0);
-  if (!total) return "3.25x";
-  const maxStake = Math.max(...stakes.map(Number), 1);
-  return `${Math.max(1.1, total / maxStake).toFixed(2)}x`;
-}
-
-function formatDuration(ms: number) {
-  const safe = Math.max(0, ms);
-  const hours = Math.floor(safe / 3_600_000);
-  const mins = Math.floor((safe % 3_600_000) / 60_000);
-  const secs = Math.floor((safe % 60_000) / 1000);
-  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
 function teamCode(name: string) {

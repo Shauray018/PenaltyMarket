@@ -127,53 +127,57 @@ export function LiveOddsChart({
   }, [latestPoint, userSelectedChart]);
 
   return (
-    <section className="relative overflow-hidden rounded-[22px] bg-inherit p-6 shadow-2xl">
-      <div className="flex flex-col gap-5  border-[#151c28] p-6 md:flex-row md:items-stretch md:justify-between md:p-0 md:pl-6">
-        <div>
-          <h2 className="text-xl font-black text-white">Live Odds</h2>
-          <p className="mt-1 text-sm font-bold text-[#7d8aa3]">
-            Match winner probability from TxLINE {active ? "stream" : "snapshot"}
-          </p>
-          <span className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-black ${state === "live" ? "bg-inherit text-[var(--accent)]" : "bg-inherit text-[#8d99b5]"}`}>
+    <section className="relative grid gap-3">
+      <div className="grid gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base font-black">Live Odds</h2>
+            <p className="text-[11px] font-bold text-[var(--muted)]">
+              TxLINE {active ? "stream" : "snapshot"}
+            </p>
+          </div>
+          <span className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black ${state === "live" ? "market-open" : "market-closed"}`}>
             {state === "live" ? <Radio className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
             {state === "live" ? "Live" : active ? "Waiting" : "Paused"}
           </span>
         </div>
-        <div className="grid grid-cols-3 md:min-w-[420px]">
+        <div className="grid grid-cols-3 gap-1">
           {CHART_KEYS.map((key) => (
             <button
               key={key}
               data-active={activeChart === key}
-              className="border-t border-[#151c28] px-4 py-4 text-left transition data-[active=true]:bg-[#000000] md:border-l md:border-t-0 md:px-6 md:py-6"
+              className={`win95-button min-w-0 px-1 text-left ${activeChart === key ? "win95-button-primary" : ""}`}
               onClick={() => {
                 setActiveChart(key);
                 setUserSelectedChart(true);
               }}
               type="button"
             >
-              <span className="block text-xs font-black uppercase text-[#7d8aa3]">{labels[key]}</span>
-              <span className="mt-2 block text-2xl font-black leading-none text-white" style={{ color: activeChart === key ? CHART_STYLE[key].color : undefined }}>
-                {latestPoint ? `${Math.round(latestPoint[key])}%` : "--"}
+              <span className="grid min-w-0">
+                <span className="truncate text-[10px] uppercase">{labels[key]}</span>
+                <span className="text-lg leading-none" style={{ color: activeChart === key ? "#ffffff" : CHART_STYLE[key].color }}>
+                  {latestPoint ? `${Math.round(latestPoint[key])}%` : "--"}
+                </span>
               </span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="relative h-[390px] p-5 md:p-6">
+      <div className="win95-panel-inset relative h-[260px] bg-white p-2">
         {chartData.length ? (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 22, right: 22, bottom: 24, left: 2 }}>
-              <CartesianGrid stroke="#1b2230" vertical={false} />
-              <XAxis dataKey="time" tick={{ fill: "#7890b7", fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} minTickGap={30} />
-              <YAxis domain={[0, Math.ceil(chartMax / 10) * 10]} orientation="right" tickFormatter={(value) => `${value}%`} tick={{ fill: "#7890b7", fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
+            <LineChart data={chartData} margin={{ top: 12, right: 8, bottom: 16, left: -18 }}>
+              <CartesianGrid stroke="#c0c0c0" vertical={false} />
+              <XAxis dataKey="time" tick={{ fill: "#404040", fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: "#808080" }} tickLine={false} minTickGap={26} />
+              <YAxis domain={[0, Math.ceil(chartMax / 10) * 10]} orientation="right" tickFormatter={(value) => `${value}%`} tick={{ fill: "#404040", fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: "#808080" }} tickLine={false} />
               <Tooltip
-                cursor={{ stroke: "#2b3448", strokeWidth: 1 }}
-                contentStyle={{ background: "#090d14", border: "1px solid #1b2230", borderRadius: 12, color: "white" }}
+                cursor={{ stroke: "#000080", strokeWidth: 1 }}
+                contentStyle={{ background: "#efefdf", border: "2px solid #808080", borderRadius: 0, color: "black", fontWeight: 700 }}
                 formatter={(value) => [`${Number(value).toFixed(1)}%`, labels[activeChart]]}
                 labelFormatter={(label) => `Time ${label}`}
               />
-              <ReferenceLine y={40} stroke="#263044" strokeDasharray="3 4" />
+              <ReferenceLine y={40} stroke="#808080" strokeDasharray="3 4" />
               <Line
                 type="monotone"
                 dataKey={activeChart}
@@ -187,24 +191,16 @@ export function LiveOddsChart({
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="grid h-full place-items-center text-sm font-black text-[#7d8aa3]">Waiting for TxLINE match-winner odds</div>
+          <div className="grid h-full place-items-center text-center text-sm font-black text-[var(--muted)]">Waiting for TxLINE match-winner odds</div>
         )}
-y
+
         {!active && (
-          <div className="absolute inset-0 grid place-items-center bg-inherit backdrop-blur-[1px]">
-            <div className="-rotate-6 rounded-[18px] border border-[#342b75] bg-[#111028]/80 px-8 py-4 text-2xl font-black text-[#7f6bff]">
+          <div className="absolute inset-0 grid place-items-center bg-white/75">
+            <div className="-rotate-6 border-2 border-[#404040] bg-[#c0c0c0] px-5 py-3 text-xl font-black text-[#000080]">
               Match not live
             </div>
           </div>
         )}
-      </div>
-
-      <div className="flex justify-end gap-5 px-6 pb-6 text-sm font-black text-[#7786a6]">
-        <span>3h</span>
-        <span>24h</span>
-        <span className="rounded-md bg-[#251e6b] px-2 py-0.5 text-white">7d</span>
-        <span>30d</span>
-        <span>ALL</span>
       </div>
     </section>
   );

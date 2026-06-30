@@ -107,54 +107,56 @@ export function BetDialog() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 px-4">
-      <section className="w-full max-w-sm rounded-[16px] border border-[#141b25] bg-[#090d13] p-4 text-white shadow-2xl">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-[#17202c]">
+    <div className="fixed inset-0 z-[110] grid place-items-center bg-black/45 px-4">
+      <section className="win95-window w-full max-w-sm">
+        <div className="win95-titlebar">
+          <span>VAR_CONFIRM.EXE</span>
+          <button
+            aria-label="Close"
+            className="grid h-[18px] w-[18px] place-items-center border-b-2 border-r-2 border-b-[#404040] border-r-[#404040] border-l-2 border-t-2 border-l-white border-t-white bg-[#c0c0c0] text-black"
+            onClick={closeBet}
+            type="button"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+        <div className="win95-window-body grid gap-4">
+          <div className="win95-panel-inset flex items-start gap-3 bg-[#efefdf] p-3">
+            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden border-2 border-[#808080] bg-white">
               {outcomeFlag ? (
                 <img alt="" className="h-12 w-12 object-cover" src={outcomeFlag} />
               ) : (
-                <span className="text-sm font-black text-white/80">{outcomeMark}</span>
+                <span className="text-sm font-black text-black">{outcomeMark}</span>
               )}
             </div>
             <div>
               <div className="text-base font-black">{selectedBet.title}</div>
-              <div className="mt-1 text-sm text-white/55">Buy {selectedBet.outcomeLabel}</div>
+              <div className="mt-1 text-xs font-black uppercase text-[var(--muted)]">Buy {selectedBet.outcomeLabel}</div>
             </div>
           </div>
-          <button
-            aria-label="Close"
-            className="grid h-9 w-9 place-items-center rounded-md border border-white/10 text-white/70 hover:text-white"
-            onClick={closeBet}
-            type="button"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
 
-        <label className="mt-5 grid gap-2">
+        <label className="grid gap-2">
           <span className="sr-only">Bet amount</span>
-          <div className="grid place-items-center">
+          <div className="win95-panel-inset grid place-items-center bg-white p-3">
             <input
               autoFocus
-              className="w-40 bg-transparent text-center text-6xl font-black tracking-tight text-white outline-none"
+              className="w-44 bg-transparent text-center text-5xl font-black text-black outline-none"
               inputMode="decimal"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
             />
           </div>
-          <div className="text-center text-sm font-black text-[var(--accent)]">
-            ${payout > 0 ? payout.toFixed(2) : "0.00"} payout if right
+          <div className="text-center text-sm font-black text-[#000080]">
+            {payout > 0 ? payout.toFixed(3) : "0.000"} SOL payout if right
           </div>
-          <span className="text-center text-xs text-white/45">devnet SOL from your wallet</span>
+          <span className="text-center text-xs font-bold text-[var(--muted)]">devnet SOL from your wallet</span>
         </label>
 
-        <div className="mt-6 grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-1">
           {quickAmounts.map((value) => (
             <button
               key={value}
-              className="h-10 rounded-[10px] bg-[#242a35] text-sm font-semibold text-white hover:bg-[#2d3442]"
+              className="win95-button min-w-0 px-1 text-xs"
               onClick={() => setAmount(value)}
               type="button"
             >
@@ -163,10 +165,11 @@ export function BetDialog() {
           ))}
         </div>
 
-        <Button className="mt-3 h-12 w-full border border-[#1d3824] bg-[#0d1310] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_6px_0_#1f7a3c,0_14px_22px_rgba(31,122,60,0.18)] hover:bg-[#101915]" onClick={submit}>
+        <Button className="win95-button-primary w-full" onClick={submit}>
           Buy {selectedBet.outcomeLabel}
         </Button>
-        {status && <p className="mt-3 break-all text-xs text-white/55">{status}</p>}
+        {status && <p className="win95-panel-inset break-all bg-white p-2 text-xs font-bold text-[var(--muted)]">{status}</p>}
+        </div>
       </section>
     </div>
   );

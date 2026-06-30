@@ -37,8 +37,8 @@ export function ClaimButton({ market, position }: { market: string; position: st
 
   return (
     <div className="grid gap-2">
-      <Button onClick={claim}>Claim</Button>
-      {status && <p className="break-all text-xs text-[var(--muted)]">{status}</p>}
+      <Button className="win95-button-primary" onClick={claim}>Claim</Button>
+      {status && <p className="win95-panel-inset break-all bg-white p-2 text-xs font-bold text-[var(--muted)]">{status}</p>}
     </div>
   );
 }

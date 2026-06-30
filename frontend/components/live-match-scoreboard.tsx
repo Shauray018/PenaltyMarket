@@ -128,16 +128,16 @@ export function LiveMatchScoreboard({
   const live = Boolean(status?.live || score?.isLive);
 
   return (
-    <div className="grid justify-items-center gap-3">
-      <div className="text-5xl font-black text-white">
+    <div className="grid justify-items-center gap-2">
+      <div className="text-3xl font-black text-white [text-shadow:2px_2px_0_#003b16]">
         {score?.participant1?.goals ?? 0} - {score?.participant2?.goals ?? 0}
       </div>
-      <div className={`inline-flex items-center gap-2 rounded-[14px] px-6 py-3 text-lg font-black ${live ? "bg-[var(--accent)] text-[#071008]" : "bg-[#11171b] text-white/70"}`}>
+      <div className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-black ${live ? "market-live" : "market-closed"}`}>
         {live ? <span className="h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_14px_rgba(255,45,72,0.9)]" /> : <Clock3 className="h-5 w-5" />}
         <span>{status?.name ?? status?.label ?? "NS"}</span>
         {displaySeconds !== null && <span>{formatMatchClock(displaySeconds)}</span>}
       </div>
-      <div className="text-xs font-black uppercase tracking-wider text-white/45">
+      <div className="max-w-[110px] text-center text-[10px] font-black uppercase text-white/70">
         {status?.label ?? score?.latest?.GameState ?? "Score updating"}
       </div>
     </div>

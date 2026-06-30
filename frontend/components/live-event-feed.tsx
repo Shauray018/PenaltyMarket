@@ -97,21 +97,25 @@ export function LiveEventFeed({ fixtureId, active = false }: { fixtureId: string
   const events = useMemo(() => items.filter((item) => item.kind === "event").length, [items]);
 
   return (
-    <section className="soft-panel p-5">
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="flex items-center gap-2 text-lg font-black text-white">
-            <Radio className="h-5 w-5 text-[var(--accent)]" />
-            Live Feed
-          </h2>
-          <p className="mt-1 text-xs font-bold text-white/45">{events} match events received</p>
-        </div>
+    <section className="win95-window">
+      <div className="win95-titlebar">
+        <span>LIVE_FEED.EXE</span>
         <ConnectionPill state={connectionState} />
       </div>
+      <div className="win95-window-body">
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="flex items-center gap-2 text-base font-black">
+            <Radio className="h-5 w-5 text-[#000080]" />
+            Live Feed
+          </h2>
+          <p className="mt-1 text-xs font-bold text-[var(--muted)]">{events} match events received</p>
+        </div>
+      </div>
 
-      <div className="max-h-[520px] overflow-auto pr-1">
+      <div className="max-h-[360px] overflow-auto pr-1">
         {items.length ? (
-          <div className="grid gap-3">
+          <div className="grid gap-2">
             {items.map((item, index) =>
               item.kind === "heartbeat" ? (
                 <HeartbeatRow key={`heartbeat-${item.receivedAt}-${index}`} item={item} />
@@ -121,10 +125,11 @@ export function LiveEventFeed({ fixtureId, active = false }: { fixtureId: string
             )}
           </div>
         ) : (
-          <div className="rounded-[14px] border border-[#1c2426] bg-black p-5 text-sm font-bold text-white/50">
+          <div className="win95-panel-inset bg-white p-4 text-sm font-bold text-[var(--muted)]">
             {active ? "Waiting for live TxLINE score events..." : "Live feed starts when the match goes live."}
           </div>
         )}
+      </div>
       </div>
     </section>
   );
@@ -135,38 +140,38 @@ function EventRow({ event }: { event: ScoreEvent }) {
   const detail = eventDetail(event);
 
   return (
-    <article className="rounded-[14px] border border-[#1d2729] bg-[#050807] p-4">
+    <article className="win95-panel-inset bg-[#efefdf] p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-[#0b2b17] px-3 py-1 text-xs font-black uppercase text-[var(--accent)]">
+            <span className="market-open px-2 py-1 text-[10px] font-black uppercase">
               {prettyAction(event.Action)}
             </span>
             {event.Participant && (
-              <span className="rounded-full border border-[#263033] px-3 py-1 text-xs font-black text-white/55">
+              <span className="bg-[#c0c0c0] px-2 py-1 text-[10px] font-black">
                 Team {event.Participant}
               </span>
             )}
           </div>
-          {detail && <p className="mt-3 text-sm font-bold text-white/65">{detail}</p>}
+          {detail && <p className="mt-2 text-sm font-bold text-[var(--muted)]">{detail}</p>}
         </div>
         <div className="shrink-0 text-right">
-          <div className="flex items-center justify-end gap-1 text-sm font-black text-white">
-            <Clock3 className="h-4 w-4 text-white/45" />
+          <div className="flex items-center justify-end gap-1 text-sm font-black">
+            <Clock3 className="h-4 w-4 text-[var(--muted)]" />
             {formatClock(event.Clock?.Seconds)}
           </div>
-          <div className="mt-1 text-xs font-bold text-white/35">Seq {event.Seq ?? "-"}</div>
+          <div className="mt-1 text-xs font-bold text-[var(--muted)]">Seq {event.Seq ?? "-"}</div>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-black">
-        <div className="rounded-[10px] bg-black px-2 py-2 text-white/60">
-          Score <span className="ml-1 text-white">{score}</span>
+      <div className="mt-3 grid grid-cols-3 gap-1 text-center text-[10px] font-black">
+        <div className="bg-white px-1 py-2">
+          Score <span className="ml-1 text-[#000080]">{score}</span>
         </div>
-        <div className="rounded-[10px] bg-black px-2 py-2 text-white/60">
-          Status <span className="ml-1 text-white">{statusName(event.StatusId)}</span>
+        <div className="bg-white px-1 py-2">
+          Status <span className="ml-1 text-[#000080]">{statusName(event.StatusId)}</span>
         </div>
-        <div className="rounded-[10px] bg-black px-2 py-2 text-white/60">
+        <div className="bg-white px-1 py-2 text-[#000080]">
           {formatTime(event.Ts)}
         </div>
       </div>
@@ -176,9 +181,9 @@ function EventRow({ event }: { event: ScoreEvent }) {
 
 function HeartbeatRow({ item }: { item: Extract<FeedItem, { kind: "heartbeat" }> }) {
   return (
-    <div className="flex items-center justify-between rounded-[14px] border border-[#1c2426] bg-black px-4 py-3 text-xs font-black text-white/45">
+    <div className="win95-panel-inset flex items-center justify-between bg-white px-3 py-2 text-xs font-black text-[var(--muted)]">
       <span className="inline-flex items-center gap-2">
-        <Activity className="h-4 w-4 text-[var(--accent)]" />
+        <Activity className="h-4 w-4 text-[#000080]" />
         heartbeat
       </span>
       <span>{formatTime(item.ts ?? item.receivedAt)}</span>
@@ -192,17 +197,7 @@ function ConnectionPill({ state }: { state: "idle" | "connecting" | "connected" 
   const idle = state === "idle";
 
   return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-black ${
-        connected
-          ? "bg-[#0b2b17] text-[var(--accent)]"
-          : idle
-            ? "bg-[#171d1a] text-white/45"
-          : connecting
-            ? "bg-[#272314] text-[var(--gold)]"
-            : "bg-[#32131a] text-[#ff687d]"
-      }`}
-    >
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-black ${connected ? "market-open" : idle ? "market-closed" : connecting ? "bg-[#f6d045] text-black" : "market-live"}`}>
       {connected ? <Radio className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
       {state}
     </span>

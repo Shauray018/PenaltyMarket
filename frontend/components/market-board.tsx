@@ -2,18 +2,26 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Clock3, Flame, Search, ShieldCheck, Trophy, Users } from "lucide-react";
-import { Button } from "@/components/ui";
+import { CalendarClock, CircleDollarSign, Flag, Search, ShieldCheck, Trophy, Users } from "lucide-react";
 import { flagUrlForTeam } from "@/lib/flags";
 import { formatSol } from "@/lib/format";
 import { useAppStore, type FixtureItem } from "@/lib/store";
+
+const filterLabels: Array<{ value: "trending" | "live" | "open"; label: string }> = [
+  { value: "trending", label: "Hot Board" },
+  { value: "live", label: "Live" },
+  { value: "open", label: "Kickoff Soon" }
+];
 
 export function MarketBoard() {
   const fixtures = useAppStore((state) => state.fixtures);
   const loading = useAppStore((state) => state.loadingFixtures);
   const query = useAppStore((state) => state.query);
   const setQuery = useAppStore((state) => state.setQuery);
+  const filter = useAppStore((state) => state.filter);
+  const setFilter = useAppStore((state) => state.setFilter);
   const loadFixtures = useAppStore((state) => state.loadFixtures);
+  const [limit, setLimit] = useState(12);
 
   useEffect(() => {
     loadFixtures();
@@ -24,180 +32,223 @@ export function MarketBoard() {
   const visibleFixtures = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return fixtures.filter((fixture) => {
-      if (!normalizedQuery) return true;
-      return `${fixture.participant1} ${fixture.participant2} ${fixture.fixtureId}`.toLowerCase().includes(normalizedQuery);
+      const searchMatch =
+        !normalizedQuery ||
+        `${fixture.participant1} ${fixture.participant2} ${fixture.fixtureId}`.toLowerCase().includes(normalizedQuery);
+      if (!searchMatch) return false;
+      if (filter === "live") return Boolean(fixture.isLive || fixture.phase === "break");
+      if (filter === "open") return Boolean(fixture.timing?.bettingOpen || fixture.timing?.bettingProminent);
+      return true;
     });
-  }, [fixtures, query]);
+  }, [filter, fixtures, query]);
 
   const featured =
     visibleFixtures.find((fixture) => fixture.isLive || fixture.phase === "break") ??
     visibleFixtures.find((fixture) => fixture.timing?.bettingProminent) ??
     visibleFixtures[0];
+  const visibleRows = visibleFixtures.slice(0, limit);
 
   return (
-    <>
-      <div className="grid gap-12">
-        <FeaturedMarket fixture={featured} />
+    <div className="grid gap-3">
+      <MatchTicker fixtures={fixtures.length ? fixtures : visibleFixtures} />
+      <FeaturedMarket fixture={featured} loading={loading} />
 
-        <div className="grid gap-12 lg:grid-cols-[1fr_370px]">
-          <div className="grid gap-8">
-            {/* <FilterBar query={query} setQuery={setQuery} /> */}
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_300px]">
+        <section className="win95-window">
+          <div className="win95-titlebar">
+            <span>MARKETS.EXE</span>
+            <span className="text-[11px] font-black">{visibleFixtures.length} files</span>
+          </div>
+          <div className="win95-window-body grid gap-3">
+            <MarketFilters filter={filter} query={query} setFilter={setFilter} setQuery={setQuery} />
 
-            {loading && !visibleFixtures.length ? (
-              <div className="soft-panel p-8 text-center text-sm font-bold text-[var(--muted)]">Loading markets</div>
+            {loading && !visibleRows.length ? (
+              <div className="win95-panel-inset grid min-h-32 place-items-center p-6 text-center text-sm font-black">
+                <div>
+                  <div className="mx-auto mb-3 h-5 w-44 win95-progress">
+                    <div className="win95-progress-fill h-full w-2/3" />
+                  </div>
+                  VAR check in progress...
+                </div>
+              </div>
             ) : (
-              <div className="grid gap-x-12 gap-y-16 md:grid-cols-2 xl:grid-cols-3">
-                {visibleFixtures.slice(0, 9).map((fixture) => (
-                  <MarketTile key={fixture.fixtureId} fixture={fixture} />
+              <div className="grid gap-2 xl:grid-cols-2">
+                {visibleRows.map((fixture) => (
+                  <MarketRow key={fixture.fixtureId} fixture={fixture} />
                 ))}
               </div>
             )}
 
             {!loading && !visibleFixtures.length && (
-              <div className="soft-panel p-8 text-center text-sm font-bold text-[var(--muted)]">No markets match the current search.</div>
+              <div className="win95-panel-inset grid min-h-32 place-items-center p-5 text-center">
+                <div>
+                  <div className="text-lg font-black">No markets found</div>
+                  <div className="mt-1 text-xs font-bold text-[var(--muted)]">Try another club, fixture ID, or filter.</div>
+                </div>
+              </div>
             )}
 
-            <div className="flex justify-center">
-              <button className="h-14 rounded-[18px] border border-[#2b3438] px-14 text-base font-black text-white transition hover:border-[var(--accent)]" type="button">
-                Load More Markets
+            {visibleFixtures.length > visibleRows.length && (
+              <button className="win95-button w-full" type="button" onClick={() => setLimit((value) => value + 8)}>
+                Load More Fixtures
               </button>
-            </div>
+            )}
           </div>
+        </section>
 
-          <MarketsSidebar />
-        </div>
+        <MarketsUtilityRail fixtures={fixtures} />
       </div>
-    </>
-  );
-}
-
-function FeaturedMarket({ fixture }: { fixture?: FixtureItem }) {
-  const title = fixture ? `${fixture.participant1} VS ${fixture.participant2}` : "BRAZIL VS ARGENTINA";
-  const [team1, team2] = title.split(" VS ");
-
-  return (
-    <section className="pitch-hero overflow-hidden rounded-[26px] border border-[#1e7b3f] px-12 py-8 md:px-14 md:py-9">
-      <div className="relative grid min-h-[332px] gap-8 md:grid-cols-[1fr_345px] md:items-center">
-        <div>
-          <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/18 px-5 py-2.5 text-sm font-black uppercase tracking-[0.08em] text-white/80">
-            <Trophy className="h-5 w-5 text-[var(--gold)]" />
-            Match of the Week
-          </div>
-          <h1 className="hero-title mt-7 max-w-2xl uppercase text-white">
-            {team1 ?? "Brazil"} <span className="text-[var(--gold)]">VS</span>
-            <br />
-            {team2 ?? "Argentina"}
-          </h1>
-          <p className="mt-4 max-w-xl text-xl font-bold leading-7 text-white/70">
-            The ultimate rivalry returns. Predict the winner and share in the live SOL prize pool.
-          </p>
-          <div className="mt-7 flex flex-wrap items-center gap-7">
-            <Link href={fixture ? `/match/${fixture.fixtureId}` : "/"}>
-              <Button className="h-14 rounded-[17px] bg-white px-9 text-lg text-[var(--accent)] hover:bg-white/90">
-                View Featured Market
-              </Button>
-            </Link>
-            <div>
-              <div className="text-xs font-black uppercase tracking-wider text-white/45">Current Pool</div>
-              <div className="text-3xl font-black text-white">{fixture ? "Live SOL" : "2,500.00 SOL"}</div>
-            </div>
-          </div>
-        </div>
-        <div className="hidden md:block">
-          <HeroCountdown fixture={fixture} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function HeroCountdown({ fixture }: { fixture?: FixtureItem }) {
-  const [now, setNow] = useState(Date.now());
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(interval);
-  }, []);
-
-  const isLive = Boolean(fixture?.isLive);
-  const isBreak = fixture?.phase === "break";
-  const ms = Math.max(0, Number(fixture?.startTime ?? now) - now);
-  const days = Math.floor(ms / 86_400_000);
-  const hours = Math.floor((ms % 86_400_000) / 3_600_000);
-  const mins = Math.floor((ms % 3_600_000) / 60_000);
-  const secs = Math.floor((ms % 60_000) / 1000);
-
-  return (
-    <div className="rounded-[22px] border border-white/20 bg-black/20 p-8 text-center shadow-2xl backdrop-blur">
-      {isLive || isBreak ? (
-        <>
-          <div className="text-sm font-black uppercase tracking-[0.22em] text-white/65">{isBreak ? "Match at Break" : "Match Live Now"}</div>
-          <div className="mt-5 rounded-[18px] bg-[#071d0f] px-8 py-7">
-            <div className="text-5xl font-black leading-none text-white">{fixture?.status?.name ?? (isBreak ? "HT" : "LIVE")}</div>
-            <div className="mt-3 text-sm font-black uppercase text-[var(--accent)]">{fixture?.status?.label ?? (isBreak ? "Half Time" : "Live")}</div>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="text-sm font-black uppercase tracking-[0.22em] text-white/65">Next Match Starts</div>
-          <div className="mt-5 grid grid-cols-4 gap-4">
-            {[
-              ["days", days],
-              ["hours", hours],
-              ["mins", mins],
-              ["secs", secs]
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-[16px] bg-[#071d0f] pl-3 pr-14 py-4">
-                <div className="text-4xl font-black leading-none text-white">{String(value).padStart(2, "0")}</div>
-                <div className="mt-2 text-xs font-black uppercase text-[var(--accent)]">{label}</div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
     </div>
   );
 }
 
-function FilterBar({ query, setQuery }: { query: string; setQuery: (query: string) => void }) {
+function MatchTicker({ fixtures }: { fixtures: FixtureItem[] }) {
+  const items = fixtures.slice(0, 10);
+  const fallback = [
+    "BRA vs ARG - referee warming up",
+    "SOL pools syncing",
+    "Full time claims ready after settlement"
+  ];
+  const labels = items.length
+    ? items.map((fixture) => `${fixture.participant1} vs ${fixture.participant2} - ${formatFixtureTiming(fixture)}`)
+    : fallback;
+  const doubled = [...labels, ...labels];
+
   return (
-    <section className="soft-panel grid gap-4 p-5 xl:grid-cols-[185px_185px_1fr_40px] xl:items-end">
-      <label className="grid gap-2">
-        <span className="text-xs font-black uppercase text-white/45">Competition</span>
-        <select className="h-12 rounded-full border border-[#1c2427] bg-black px-4 text-sm font-bold text-white outline-none">
-          <option>All Leagues</option>
-          <option>World Cup</option>
-          <option>Premier League</option>
-        </select>
-      </label>
-      <label className="grid gap-2">
-        <span className="text-xs font-black uppercase text-white/45">Sort By</span>
-        <select className="h-12 rounded-full border border-[#1c2427] bg-black px-4 text-sm font-bold text-white outline-none">
-          <option>Largest Pool</option>
-          <option>Kickoff</option>
-          <option>Live</option>
-        </select>
-      </label>
-      <div className="flex items-center justify-end gap-4">
-        <span className="text-sm font-black text-white">NFT Holders Only</span>
-        <span className="relative h-7 w-12 rounded-full bg-white">
-          <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-[#dbe1e5]" />
-        </span>
+    <section className="ticker-strip" aria-label="Live match ticker">
+      <div className="ticker-track">
+        {doubled.map((label, index) => (
+          <span className="ticker-item" key={`${label}-${index}`}>
+            <Flag className="h-3.5 w-3.5 text-[var(--warning)]" />
+            {label}
+          </span>
+        ))}
       </div>
-      <label className="relative">
-        <Search className="absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 text-white/60" />
-        <input
-          aria-label="Search markets"
-          className="h-12 w-full rounded-full border border-transparent bg-transparent pl-4 pr-9 text-sm text-white outline-none focus:border-[#263234]"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </label>
     </section>
   );
 }
 
-function MarketTile({ fixture }: { fixture: FixtureItem }) {
+function FeaturedMarket({ fixture, loading }: { fixture?: FixtureItem; loading: boolean }) {
+  const title = fixture ? `${fixture.participant1} vs ${fixture.participant2}` : "Brazil vs Argentina";
+  const flag1 = flagUrlForTeam(fixture?.participant1 ?? "Brazil", 64);
+  const flag2 = flagUrlForTeam(fixture?.participant2 ?? "Argentina", 64);
+  const matchWinner = fixture?.matchWinnerMarket ?? null;
+  const pool = displayPoolLamports(matchWinner?.account);
+  const status = fixture ? formatFixtureTiming(fixture) : loading ? "Loading" : "Kickoff Soon";
+  const live = Boolean(fixture?.isLive || fixture?.phase === "break");
+
+  return (
+    <section className="win95-window overflow-hidden">
+      <div className="win95-titlebar">
+        <span>{live ? "LIVE_MATCH.EXE" : "FEATURED_MATCH.EXE"}</span>
+        <span className="win95-window-controls" aria-hidden="true">
+          <span>_</span>
+          <span>□</span>
+          <span>x</span>
+        </span>
+      </div>
+      <div className="relative overflow-hidden bg-[#0a6f18] p-3 text-white">
+        <div className="absolute inset-0 opacity-35">
+          <div className="h-full w-full bg-[linear-gradient(90deg,rgba(255,255,255,.28)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,.22)_1px,transparent_1px)] bg-[size:28px_28px]" />
+        </div>
+        <div className="relative grid gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="inline-flex items-center gap-2 bg-[#c0c0c0] px-2 py-1 text-[11px] font-black uppercase text-black">
+              <Trophy className="h-4 w-4 text-[#8a6400]" />
+              Be the Ref
+            </div>
+            <span className={`px-2 py-1 text-[11px] font-black uppercase ${live ? "market-live" : "market-open"}`}>{status}</span>
+          </div>
+
+          <Link className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-white no-underline" href={fixture ? `/match/${fixture.fixtureId}` : "/"}>
+            <TeamBadge name={fixture?.participant1 ?? "Brazil"} flag={flag1} align="right" />
+            <div className="grid h-16 w-16 place-items-center border-2 border-white bg-black text-xl font-black text-[var(--warning)] shadow-[3px_3px_0_rgba(0,0,0,.35)]">
+              VS
+            </div>
+            <TeamBadge name={fixture?.participant2 ?? "Argentina"} flag={flag2} />
+          </Link>
+
+          <div className="grid grid-cols-3 gap-2 text-black">
+            <FeaturedStat icon={<CircleDollarSign className="h-4 w-4" />} label="Pool" value={formatSol(pool)} />
+            <FeaturedStat icon={<Users className="h-4 w-4" />} label="Refs" value={`${matchWinner?.account?.traderCount ?? 0}`} />
+            <FeaturedStat icon={<CalendarClock className="h-4 w-4" />} label="Fixture" value={fixture ? String(fixture.fixtureId) : "Demo"} />
+          </div>
+
+          <Link className="win95-button win95-button-primary w-full" href={fixture ? `/match/${fixture.fixtureId}` : "/"}>
+            Open Match Terminal
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TeamBadge({ name, flag, align = "left" }: { name: string; flag?: string | null; align?: "left" | "right" }) {
+  return (
+    <div className={`grid gap-1 ${align === "right" ? "justify-items-end text-right" : "justify-items-start text-left"}`}>
+      <div className="grid h-12 w-16 place-items-center overflow-hidden border-2 border-white bg-[#c0c0c0] shadow-[2px_2px_0_rgba(0,0,0,.35)]">
+        {flag ? <img src={flag} alt="" className="h-full w-full object-cover" /> : <span className="text-xs font-black text-black">{teamCode(name)}</span>}
+      </div>
+      <div className="max-w-[120px] text-xl font-black uppercase leading-5 [text-shadow:2px_2px_0_#003b16]">{name}</div>
+    </div>
+  );
+}
+
+function FeaturedStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="win95-panel-inset min-w-0 bg-[#efefdf] p-2">
+      <div className="flex items-center gap-1 text-[10px] font-black uppercase text-[var(--muted)]">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-1 truncate text-sm font-black">{value}</div>
+    </div>
+  );
+}
+
+function MarketFilters({
+  filter,
+  query,
+  setFilter,
+  setQuery
+}: {
+  filter: "trending" | "live" | "open";
+  query: string;
+  setFilter: (filter: "trending" | "live" | "open") => void;
+  setQuery: (query: string) => void;
+}) {
+  return (
+    <div className="grid gap-2">
+      <div className="grid grid-cols-3 gap-1">
+        {filterLabels.map((item) => (
+          <button
+            className={`win95-button min-w-0 px-1 text-[11px] ${filter === item.value ? "win95-button-primary" : ""}`}
+            key={item.value}
+            onClick={() => setFilter(item.value)}
+            type="button"
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+      <label className="win95-label">
+        <span>Find match</span>
+        <span className="relative block">
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#404040]" />
+          <input
+            aria-label="Search markets"
+            className="win95-input pl-8"
+            placeholder="Team or fixture ID"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </span>
+      </label>
+    </div>
+  );
+}
+
+function MarketRow({ fixture }: { fixture: FixtureItem }) {
   const openBet = useAppStore((state) => state.openBet);
   const matchWinner = fixture.matchWinnerMarket ?? null;
   const odds = fixture.primaryOdds ?? null;
@@ -211,159 +262,124 @@ function MarketTile({ fixture }: { fixture: FixtureItem }) {
   const title = `${fixture.participant1} vs ${fixture.participant2}`;
   const flag1 = flagUrlForTeam(fixture.participant1, 64);
   const flag2 = flagUrlForTeam(fixture.participant2, 64);
+  const statusClass = fixture.isLive ? "market-live" : fixture.phase === "finished" ? "market-closed" : "market-open";
 
   return (
-    <article className="market-tile grid gap-4">
-      <div className="flex items-center justify-between text-xs font-black text-white/55">
-        <span className="rounded-full border border-[#283033] px-4 py-1.5">{fixture.phase ?? "World Cup"}</span>
-        <span className="inline-flex items-center gap-1">
-          <Clock3 className="h-4 w-4" />
-          {formatFixtureTiming(fixture)}
-        </span>
-      </div>
-      <Link href={`/match/${fixture.fixtureId}`} className="grid gap-1">
-        <h2 className="flex items-center gap-2 text-xl font-black leading-tight text-white">
-          {flag1 && <img alt="" className="h-6 w-6 rounded-sm object-cover" src={flag1} />}
-          {fixture.participant1}
-        </h2>
-        <div className="text-sm font-black uppercase text-white/55">vs</div>
-        <h3 className="flex items-center gap-2 text-xl font-black leading-tight text-white">
-          {flag2 && <img alt="" className="h-6 w-6 rounded-sm object-cover" src={flag2} />}
-          {fixture.participant2}
-        </h3>
-      </Link>
-      <div className="grid grid-cols-3 gap-3">
-        {options.slice(0, 3).map((option, index) => (
-          <button
-            key={`${fixture.fixtureId}-${option}`}
-            className="dark-press-3d h-14 rounded-[14px] bg-[#0b1118] text-center transition hover:bg-[#111c28]"
-            onClick={() =>
-              openBet({
-                fixtureId: String(fixture.fixtureId),
-                title,
-                marketType: 0,
-                outcomeIndex: index,
-                outcomeLabel: option,
-                marketExists: Boolean(matchWinner?.exists),
-                oddsPrice: odds?.Prices?.[index],
-                oddsMessageId: odds?.MessageId,
-                oddsTs: odds?.Ts
-              })
-            }
-            type="button"
-          >
-            <div className="text-xs font-black uppercase text-white/45">{outcomeCode(option, index)}</div>
-            <div className="mt-1 text-lg font-black text-[var(--accent)]">{odds ? formatDecimalOdds(odds.Prices[index]) : "--"}</div>
-          </button>
-        ))}
-      </div>
-      <div className="border-t border-[#20282b] pt-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-xs font-black uppercase text-white/45">Pool Size</div>
-            <div className="text-base font-black text-white">{formatSol(pool)}</div>
+    <article className="win95-panel-inset bg-[#efefdf] p-2">
+      <div className="grid gap-2">
+        <Link className="grid grid-cols-[1fr_auto] items-start gap-2 text-black no-underline" href={`/match/${fixture.fixtureId}`}>
+          <div className="min-w-0">
+            <div className="mb-1 flex flex-wrap items-center gap-1">
+              <span className={`px-1.5 py-0.5 text-[10px] font-black uppercase ${statusClass}`}>{formatFixtureTiming(fixture)}</span>
+              <span className="bg-[#c0c0c0] px-1.5 py-0.5 text-[10px] font-black uppercase">#{fixture.fixtureId}</span>
+            </div>
+            <div className="grid gap-1 text-[15px] font-black leading-5">
+              <span className="flex min-w-0 items-center gap-1.5">
+                {flag1 && <img src={flag1} alt="" className="h-4 w-6 border border-[#808080] object-cover" />}
+                <span className="truncate">{fixture.participant1}</span>
+              </span>
+              <span className="flex min-w-0 items-center gap-1.5">
+                {flag2 && <img src={flag2} alt="" className="h-4 w-6 border border-[#808080] object-cover" />}
+                <span className="truncate">{fixture.participant2}</span>
+              </span>
+            </div>
           </div>
-          <div className="flex items-center text-xs font-bold text-white/65">
-            <Users className="mr-1 h-4 w-4 text-[var(--accent)]" />
-            {traderCount} traders
+          <div className="text-right text-[11px] font-black">
+            <div>{formatSol(pool)}</div>
+            <div className="mt-1 text-[var(--muted)]">{traderCount} refs</div>
           </div>
+        </Link>
+
+        <div className="grid grid-cols-3 gap-1">
+          {options.slice(0, 3).map((option, index) => (
+            <button
+              key={`${fixture.fixtureId}-${option}-${index}`}
+              className="win95-button min-w-0 px-1 py-1"
+              onClick={() =>
+                openBet({
+                  fixtureId: String(fixture.fixtureId),
+                  title,
+                  marketType: 0,
+                  outcomeIndex: index,
+                  outcomeLabel: option,
+                  marketExists: Boolean(matchWinner?.exists),
+                  oddsPrice: odds?.Prices?.[index],
+                  oddsMessageId: odds?.MessageId,
+                  oddsTs: odds?.Ts
+                })
+              }
+              type="button"
+            >
+              <span className="grid min-w-0 leading-tight">
+                <span className="truncate text-[10px] uppercase">{outcomeCode(option, index)}</span>
+                <span className="text-sm text-[#000080]">{odds ? formatDecimalOdds(odds.Prices[index]) : "--"}</span>
+              </span>
+            </button>
+          ))}
         </div>
-        <button
-          className="press-3d mt-5 h-11 w-full rounded-[16px] bg-[var(--accent)] text-base font-black text-[#071008] transition hover:bg-[var(--accent-strong)]"
-          onClick={() =>
-            openBet({
-              fixtureId: String(fixture.fixtureId),
-              title,
-              marketType: 0,
-              outcomeIndex: 0,
-              outcomeLabel: options[0] ?? fixture.participant1,
-              marketExists: Boolean(matchWinner?.exists),
-              oddsPrice: odds?.Prices?.[0],
-              oddsMessageId: odds?.MessageId,
-              oddsTs: odds?.Ts
-            })
-          }
-          type="button"
-        >
-          Place Prediction
-        </button>
       </div>
     </article>
   );
 }
 
-function MarketsSidebar() {
-  const scorers = ["SolStriker", "CryptoKeeper", "NftFanatic", "GoalGetter", "BlockchainBlu"];
+function MarketsUtilityRail({ fixtures }: { fixtures: FixtureItem[] }) {
+  const liveCount = fixtures.filter((fixture) => fixture.isLive || fixture.phase === "break").length;
+  const openCount = fixtures.filter((fixture) => fixture.timing?.bettingOpen || fixture.timing?.bettingProminent).length;
+  const scorers = ["SolStriker", "CryptoKeeper", "GoalGetter", "ChainRef"];
+
   return (
-    <aside className="grid h-fit gap-10">
-      <section className="rounded-[18px] bg-[var(--accent)] p-7 text-[#071008]">
-        <h2 className="flex items-center gap-2 text-2xl font-black italic">
-          <Trophy className="h-6 w-6" />
-          BE THE REF
-        </h2>
-        <p className="mt-4 text-base font-bold leading-6 text-[#12411f]">
-          Have a specific match in mind? Create your own prediction market and earn 1% of the total pool.
-        </p>
-        <button className="dark-press-3d mt-8 h-14 w-full rounded-[16px] bg-[#15191f] text-base font-black text-white" type="button">
-          Create Prediction
-        </button>
+    <div className="grid gap-3">
+      <section className="win95-window">
+        <div className="win95-titlebar">
+          <span>REFEREE_BOX.EXE</span>
+        </div>
+        <div className="win95-window-body grid gap-2">
+          <div className="win95-panel-inset bg-[#efefdf] p-3">
+            <h2 className="flex items-center gap-2 text-lg font-black uppercase">
+              <ShieldCheck className="h-5 w-5" />
+              Be the Ref
+            </h2>
+            <p className="mt-2 text-xs font-bold leading-5 text-[var(--muted)]">
+              Draft match terms, set outcomes, and preview the ticket before the whistle.
+            </p>
+          </div>
+          <Link className="win95-button win95-button-primary w-full" href="/create">
+            Create Prediction
+          </Link>
+          <div className="grid grid-cols-2 gap-2">
+            <MiniStat label="Live" value={String(liveCount)} />
+            <MiniStat label="Open" value={String(openCount)} />
+          </div>
+        </div>
       </section>
 
-      <section>
-        <div className="mb-7 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-2xl font-black text-white">
-            <Trophy className="h-6 w-6 text-[var(--gold)]" />
-            Top Scorers
-          </h2>
-          <button className="text-sm font-black text-[var(--accent)]" type="button">View All</button>
+      <section className="win95-window">
+        <div className="win95-titlebar">
+          <span>SCOREBOARD.EXE</span>
         </div>
-        <div className="grid gap-0">
+        <div className="win95-window-body grid gap-1">
           {scorers.map((name, index) => (
-            <div key={name} className="grid grid-cols-[34px_44px_1fr_auto] items-center border-b border-[#22292c] py-5">
-              <div className="text-xl font-black text-white">#{index + 1}</div>
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-[#e7d8c7] to-[#2261a8] text-xs font-black text-black">
-                {name.slice(0, 2)}
-              </div>
-              <div>
-                <div className="font-black text-white">{name}</div>
-                <div className="text-xs font-black uppercase text-white/45">Pro Bettor</div>
-              </div>
-              <div className="text-right">
-                <div className="font-black text-[var(--accent)]">+{452 - index * 71}.8 SOL</div>
-                <div className="text-xs font-bold text-white/50">Total Payouts</div>
-              </div>
-            </div>
+            <Link className="grid grid-cols-[28px_1fr_auto] items-center gap-2 p-1 text-black no-underline hover:bg-[#000080] hover:text-white" href="/leaderboard" key={name}>
+              <span className="font-black">#{index + 1}</span>
+              <span className="truncate font-black">{name}</span>
+              <span className="text-xs font-black">+{(128 - index * 19).toFixed(1)}</span>
+            </Link>
           ))}
+          <Link className="win95-button mt-2 w-full" href="/leaderboard">
+            View Leaderboard
+          </Link>
         </div>
       </section>
+    </div>
+  );
+}
 
-      <div className="grid grid-cols-2 gap-5">
-        <div className="soft-panel grid h-28 place-items-center text-center">
-          <Flame className="h-6 w-6 text-[var(--accent)]" />
-          <div className="text-3xl font-black text-white">24.5K</div>
-          <div className="text-xs font-black uppercase text-white/50">Bets Placed</div>
-        </div>
-        <div className="soft-panel grid h-28 place-items-center text-center">
-          <ShieldCheck className="h-6 w-6 text-[var(--accent)]" />
-          <div className="text-3xl font-black text-white">100%</div>
-          <div className="text-xs font-black uppercase text-white/50">Verified</div>
-        </div>
-      </div>
-
-      <section className="rounded-[18px] bg-[#230858] p-8 text-center">
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-white text-[#ff8a00]">
-          <Flame className="h-7 w-7" />
-        </div>
-        <h2 className="mt-7 text-xl font-black text-white">Stadium Updates</h2>
-        <p className="mt-3 text-sm font-bold leading-5 text-white/55">Get the best odds and match previews delivered to your inbox.</p>
-        <div className="mt-7 grid gap-3">
-          <input className="h-11 rounded-full bg-black px-5 text-sm font-bold text-white outline-none" placeholder="strikernft@sol.com" />
-          <button className="press-3d h-12 rounded-full bg-[var(--accent)] text-base font-black text-[#071008]" type="button">
-            Join Stadium
-          </button>
-        </div>
-      </section>
-    </aside>
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="win95-panel-inset bg-white p-2 text-center">
+      <div className="text-xl font-black text-[#000080]">{value}</div>
+      <div className="text-[10px] font-black uppercase text-[var(--muted)]">{label}</div>
+    </div>
   );
 }
 
@@ -402,7 +418,7 @@ function formatShortCountdown(startTime: number) {
 function formatFixtureTiming(fixture: FixtureItem) {
   if (fixture.isLive) return fixture.status?.name ?? "Live";
   if (fixture.phase === "break") return fixture.status?.name ?? "Break";
-  if (fixture.phase === "finished") return "Finished";
+  if (fixture.phase === "finished") return "Full Time";
   return fixture.startTime ? formatShortCountdown(fixture.startTime) : "Soon";
 }
 
@@ -415,8 +431,12 @@ function labelPriceName(name: string, fixture: FixtureItem) {
 
 function outcomeCode(option: string, index: number) {
   if (index === 1 || option.toLowerCase() === "draw") return "DRAW";
-  const words = option.replace(/[^a-zA-Z ]/g, " ").trim().split(/\s+/).filter(Boolean);
-  if (!words.length) return index === 0 ? "P1" : "P2";
+  return teamCode(option) || (index === 0 ? "P1" : "P2");
+}
+
+function teamCode(name: string) {
+  const words = name.replace(/[^a-zA-Z ]/g, " ").trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return "";
   if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
   return words.map((word) => word[0]).join("").slice(0, 3).toUpperCase();
 }

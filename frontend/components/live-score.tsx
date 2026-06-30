@@ -118,27 +118,27 @@ export function LiveScore({
 
   const score = streamedSummary ?? data?.summary ?? initialSummary;
 
-  if (stream && isLoading) return <span className="text-sm text-[var(--muted)]">Loading score</span>;
-  if (!score) return <span className="text-sm text-[var(--muted)]">Score unavailable</span>;
+  if (stream && isLoading) return <span className="text-sm font-bold text-[var(--muted)]">Loading score</span>;
+  if (!score) return <span className="text-sm font-bold text-[var(--muted)]">Score unavailable</span>;
 
   return (
     <div className={compact ? "text-sm" : "grid gap-3"}>
-      <div className="flex items-center gap-2">
-        <span className="font-semibold">
+      <div className="win95-panel-inset flex items-center justify-center gap-2 bg-white p-2">
+        <span className="text-xl font-black text-[#000080]">
           {score.participant1?.goals ?? 0} - {score.participant2?.goals ?? 0}
         </span>
-        <span className="text-[var(--muted)]">{score.status?.label ?? score.latest?.GameState ?? "No status"}</span>
+        <span className="text-xs font-black uppercase text-[var(--muted)]">{score.status?.label ?? score.latest?.GameState ?? "No status"}</span>
       </div>
       {!compact && (
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-md border border-[var(--border)] p-3">
-            <div className="text-[var(--muted)]">Team 1</div>
+        <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+          <div className="win95-panel-inset bg-[#efefdf] p-2">
+            <div className="font-black uppercase text-[var(--muted)]">Team 1</div>
             <div>Corners {score.participant1?.corners ?? 0}</div>
             <div>Yellow cards {score.participant1?.yellowCards ?? 0}</div>
             <div>Red cards {score.participant1?.redCards ?? 0}</div>
           </div>
-          <div className="rounded-md border border-[var(--border)] p-3">
-            <div className="text-[var(--muted)]">Team 2</div>
+          <div className="win95-panel-inset bg-[#efefdf] p-2">
+            <div className="font-black uppercase text-[var(--muted)]">Team 2</div>
             <div>Corners {score.participant2?.corners ?? 0}</div>
             <div>Yellow cards {score.participant2?.yellowCards ?? 0}</div>
             <div>Red cards {score.participant2?.redCards ?? 0}</div>
