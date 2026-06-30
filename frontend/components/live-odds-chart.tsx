@@ -6,7 +6,6 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -38,9 +37,9 @@ const CHART_KEYS = ["home", "draw", "away"] as const;
 type ChartKey = (typeof CHART_KEYS)[number];
 
 const CHART_STYLE: Record<ChartKey, { color: string }> = {
-  home: { color: "#0fb981" },
-  draw: { color: "#8c96aa" },
-  away: { color: "#ff3347" }
+  home: { color: "#2f82ff" },
+  draw: { color: "#96a0b3" },
+  away: { color: "#f0d400" }
 };
 
 export function LiveOddsChart({
@@ -55,10 +54,7 @@ export function LiveOddsChart({
   active: boolean;
 }) {
   const [points, setPoints] = useState<ChartPoint[]>([]);
-  const [latest, setLatest] = useState<OddsRecord | null>(null);
   const [state, setState] = useState<"loading" | "live" | "paused" | "waiting">("loading");
-  const [activeChart, setActiveChart] = useState<ChartKey>("home");
-  const [userSelectedChart, setUserSelectedChart] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +66,6 @@ export function LiveOddsChart({
         const payload = await response.json();
         const primary = normalizeMatchWinner(payload.primary);
         if (cancelled || !primary) return;
-        setLatest(primary);
         setPoints([recordToPoint(primary)]);
       } catch {
         if (!cancelled) setState(active ? "waiting" : "paused");
@@ -102,7 +97,6 @@ export function LiveOddsChart({
         if (String(record.FixtureId) !== String(fixtureId)) return;
 
         setState("live");
-        setLatest(record);
         setPoints((current) => {
           if (current.some((point) => point.ts === record.Ts)) return current;
           return [...current, recordToPoint(record)].sort((a, b) => a.ts - b.ts).slice(-MAX_POINTS);
@@ -118,85 +112,96 @@ export function LiveOddsChart({
   const chartData = normalizeChartData(points);
   const latestPoint = points.at(-1) ?? chartData.at(-1);
   const labels = useMemo(() => ({ home: teamCode(home), draw: "Draw", away: teamCode(away) }), [away, home]);
-  const chartMax = Math.max(80, ...chartData.map((point) => point[activeChart]), 0);
-
-  useEffect(() => {
-    if (!latestPoint || userSelectedChart) return;
-    const highest = CHART_KEYS.reduce((winner, key) => (latestPoint[key] > latestPoint[winner] ? key : winner), "home" as ChartKey);
-    setActiveChart(highest);
-  }, [latestPoint, userSelectedChart]);
+  const readoutTops = useMemo(() => (latestPoint ? getReadoutTops(latestPoint) : null), [latestPoint]);
 
   return (
-    <section className="relative grid gap-3">
-      <div className="grid gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-black">Live Odds</h2>
-            <p className="text-[11px] font-bold text-[var(--muted)]">
-              TxLINE {active ? "stream" : "snapshot"}
-            </p>
-          </div>
-          <span className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black ${state === "live" ? "market-open" : "market-closed"}`}>
+    <section className="relative">
+      <div className="win95-panel-inset relative h-[260px] overflow-hidden bg-[#080d16] p-0 sm:h-[300px]">
+        <div className="absolute left-3 top-3 z-10 flex items-center gap-2 text-[10px] font-black uppercase tracking-normal text-[#74819b]">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 ${state === "live" ? "bg-[#123f27] text-[#71f5ac]" : "bg-[#1a2230] text-[#a5afc2]"}`}>
             {state === "live" ? <Radio className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
             {state === "live" ? "Live" : active ? "Waiting" : "Paused"}
           </span>
+          <span>TxLINE {active ? "stream" : "snapshot"}</span>
         </div>
-        <div className="grid grid-cols-3 gap-1">
-          {CHART_KEYS.map((key) => (
-            <button
-              key={key}
-              data-active={activeChart === key}
-              className={`win95-button min-w-0 px-1 text-left ${activeChart === key ? "win95-button-primary" : ""}`}
-              onClick={() => {
-                setActiveChart(key);
-                setUserSelectedChart(true);
-              }}
-              type="button"
-            >
-              <span className="grid min-w-0">
-                <span className="truncate text-[10px] uppercase">{labels[key]}</span>
-                <span className="text-lg leading-none" style={{ color: activeChart === key ? "#ffffff" : CHART_STYLE[key].color }}>
-                  {latestPoint ? `${Math.round(latestPoint[key])}%` : "--"}
-                </span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
 
-      <div className="win95-panel-inset relative h-[260px] bg-white p-2">
         {chartData.length ? (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 12, right: 8, bottom: 16, left: -18 }}>
-              <CartesianGrid stroke="#c0c0c0" vertical={false} />
-              <XAxis dataKey="time" tick={{ fill: "#404040", fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: "#808080" }} tickLine={false} minTickGap={26} />
-              <YAxis domain={[0, Math.ceil(chartMax / 10) * 10]} orientation="right" tickFormatter={(value) => `${value}%`} tick={{ fill: "#404040", fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: "#808080" }} tickLine={false} />
+            <LineChart data={chartData} margin={{ top: 18, right: 104, bottom: 22, left: 0 }}>
+              <CartesianGrid stroke="rgba(91, 108, 135, 0.22)" vertical={false} />
+              <XAxis
+                dataKey="time"
+                tick={{ fill: "#7f8aa3", fontSize: 10, fontWeight: 700 }}
+                axisLine={{ stroke: "rgba(91, 108, 135, 0.2)" }}
+                tickLine={false}
+                minTickGap={42}
+              />
+              <YAxis
+                domain={[0, 100]}
+                orientation="right"
+                ticks={[0, 20, 40, 60, 80, 100]}
+                hide
+              />
               <Tooltip
-                cursor={{ stroke: "#000080", strokeWidth: 1 }}
-                contentStyle={{ background: "#efefdf", border: "2px solid #808080", borderRadius: 0, color: "black", fontWeight: 700 }}
-                formatter={(value) => [`${Number(value).toFixed(1)}%`, labels[activeChart]]}
+                cursor={{ stroke: "rgba(255,255,255,0.35)", strokeWidth: 1 }}
+                contentStyle={{ background: "#101722", border: "1px solid #263347", borderRadius: 0, color: "#e7eefc", fontWeight: 700 }}
+                itemStyle={{ fontWeight: 900 }}
+                labelStyle={{ color: "#aeb8cc", fontWeight: 900 }}
+                formatter={(value, name) => {
+                  const key = name as ChartKey;
+                  const numeric = typeof value === "number" ? value : Number(value);
+                  const label = CHART_KEYS.includes(key) ? labels[key] : String(name);
+                  return [`${Number.isFinite(numeric) ? numeric.toFixed(1) : value}%`, label];
+                }}
                 labelFormatter={(label) => `Time ${label}`}
               />
-              <ReferenceLine y={40} stroke="#808080" strokeDasharray="3 4" />
-              <Line
-                type="monotone"
-                dataKey={activeChart}
-                name={activeChart}
-                stroke={CHART_STYLE[activeChart].color}
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6 }}
-                isAnimationActive={false}
-              />
+              {CHART_KEYS.map((key) => (
+                <Line
+                  key={key}
+                  type="monotone"
+                  dataKey={key}
+                  name={key}
+                  stroke={CHART_STYLE[key].color}
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 0, fill: CHART_STYLE[key].color }}
+                  isAnimationActive={false}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="grid h-full place-items-center text-center text-sm font-black text-[var(--muted)]">Waiting for TxLINE match-winner odds</div>
+          <div className="grid h-full place-items-center text-center text-sm font-black text-[#96a0b3]">Waiting for TxLINE match-winner odds</div>
+        )}
+
+        {latestPoint && readoutTops && (
+          <div className="pointer-events-none absolute bottom-8 right-12 top-5 z-20 w-16 sm:w-20">
+            {CHART_KEYS.map((key) => (
+              <div key={key} className="absolute right-0 -translate-y-1/2 text-right" style={{ top: `${readoutTops[key]}%` }}>
+                <div className="text-[10px] font-black uppercase leading-none sm:text-[11px]" style={{ color: CHART_STYLE[key].color }}>
+                  {labels[key]}
+                </div>
+                <div className="text-xl font-black leading-none sm:text-2xl" style={{ color: CHART_STYLE[key].color }}>
+                  {Math.round(latestPoint[key])}%
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {chartData.length > 0 && (
+          <div className="pointer-events-none absolute bottom-8 right-2 top-5 z-10 flex flex-col justify-between text-right text-[10px] font-bold leading-none text-[#7f8aa3]">
+            {[100, 80, 60, 40, 20, 0].map((tick) => (
+              <span key={tick}>{tick}%</span>
+            ))}
+          </div>
         )}
 
         {!active && (
-          <div className="absolute inset-0 grid place-items-center bg-white/75">
-            <div className="-rotate-6 border-2 border-[#404040] bg-[#c0c0c0] px-5 py-3 text-xl font-black text-[#000080]">
+          <div className="absolute inset-0 grid place-items-center bg-[#080d16]/70">
+            <div className="-rotate-6 border border-[#344158] bg-[#101722] px-5 py-3 text-xl font-black text-[#aeb8cc]">
               Match not live
             </div>
           </div>
@@ -244,6 +249,42 @@ function normalizeChartData(points: ChartPoint[]) {
       time: formatTime(ts)
     };
   });
+}
+
+function getReadoutTops(point: ChartPoint): Record<ChartKey, number> {
+  const tops = CHART_KEYS.map((key) => ({
+    key,
+    top: 100 - point[key]
+  })).sort((a, b) => a.top - b.top);
+  const minGap = 16;
+  const minTop = 7;
+  const maxTop = 93;
+
+  for (let index = 1; index < tops.length; index += 1) {
+    tops[index].top = Math.max(tops[index].top, tops[index - 1].top + minGap);
+  }
+
+  const overflow = tops.at(-1)!.top - maxTop;
+  if (overflow > 0) {
+    tops.forEach((item) => {
+      item.top -= overflow;
+    });
+  }
+
+  const underflow = minTop - tops[0].top;
+  if (underflow > 0) {
+    tops.forEach((item) => {
+      item.top += underflow;
+    });
+  }
+
+  return tops.reduce(
+    (result, item) => ({
+      ...result,
+      [item.key]: item.top
+    }),
+    {} as Record<ChartKey, number>
+  );
 }
 
 function formatTime(ts: number) {

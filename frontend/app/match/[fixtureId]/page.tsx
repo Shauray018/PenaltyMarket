@@ -144,6 +144,17 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
 
       <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_300px]">
         <main className="grid gap-3">
+          
+
+          <section className="win95-window">
+            <div className="win95-titlebar">
+              <span>ODDS_SCOPE.EXE</span>
+              <span className="text-[10px] font-black">{activeForOdds ? "STREAM" : "SNAPSHOT"}</span>
+            </div>
+            <div className="win95-window-body">
+              <LiveOddsChart fixtureId={fixtureId} home={home} away={away} active={activeForOdds} />
+            </div>
+          </section>
           <section className="win95-window">
             <div className="win95-titlebar">
               <span>POOL_SPLIT.EXE</span>
@@ -155,16 +166,6 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
                 <StatCard icon={<CalendarClock className="h-4 w-4" />} label="Window" value={timing.bettingClosed ? "Closed" : "Open"} />
               </div>
               <PoolSplit options={options} stakes={stakes} />
-            </div>
-          </section>
-
-          <section className="win95-window">
-            <div className="win95-titlebar">
-              <span>ODDS_SCOPE.EXE</span>
-              <span className="text-[10px] font-black">{activeForOdds ? "STREAM" : "SNAPSHOT"}</span>
-            </div>
-            <div className="win95-window-body">
-              <LiveOddsChart fixtureId={fixtureId} home={home} away={away} active={activeForOdds} />
             </div>
           </section>
 
