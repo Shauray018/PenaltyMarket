@@ -12,19 +12,19 @@ export const metadata: Metadata = {
   },
   description: "Trustless World Cup prediction markets on Solana devnet",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png"
+    icon: "/newlogo.png",
+    apple: "/newlogo.png"
   },
   openGraph: {
     title: "PenaltyMarket",
     description: "Trustless World Cup prediction markets on Solana devnet",
-    images: ["/logo.png"]
+    images: ["/newlogo.png"]
   },
   twitter: {
     card: "summary_large_image",
     title: "PenaltyMarket",
     description: "Trustless World Cup prediction markets on Solana devnet",
-    images: ["/logo.png"]
+    images: ["/newlogo.png"]
   }
 };
 

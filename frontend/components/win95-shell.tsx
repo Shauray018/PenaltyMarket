@@ -185,7 +185,7 @@ function PhoneFrame({
           <PhoneStatusBar activeLabel={activeLabel} balanceLabel={balanceLabel} walletLabel={walletLabel} />
           <div className="phone-app-titlebar">
             <div className="flex min-w-0 items-center gap-2">
-              <Image src="/logo.png" alt="" width={24} height={24} className="h-6 w-6 rounded-sm bg-black object-contain" priority />
+              <Image src="/newlogo.png" alt="" width={24} height={24} className="h-6 w-6 rounded-sm bg-black object-contain" priority />
               <div className="min-w-0">
                 <div className="truncate text-[13px] font-black uppercase leading-none">PenaltyMarket 95</div>
                 <div className="truncate text-[10px] font-bold text-[var(--win95-title-muted)]">Match Terminal - {activeLabel}</div>
