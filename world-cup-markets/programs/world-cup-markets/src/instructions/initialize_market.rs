@@ -1,4 +1,6 @@
 use anchor_lang::prelude::*;
+
+use crate::errors::MarketError;
 use crate::state::*;
 use crate::MarketType;
 
@@ -8,23 +10,44 @@ pub fn handler(
     market_type: MarketType,
     options: Vec<String>,
     close_time: i64,
+    team1_stat_key: u32,
+    team2_stat_key: u32,
+    stat_period: i32,
 ) -> Result<()> {
-    let market = &mut ctx.accounts.market;
-    let num_options = options.len();
+    require!(options.len() >= 2, MarketError::InvalidOutcome);
+    require!(options.len() <= MAX_OPTIONS, MarketError::TooManyOutcomes);
+    require!(
+        options
+            .iter()
+            .all(|option| option.as_bytes().len() <= MAX_OPTION_LEN),
+        MarketError::OutcomeNameTooLong
+    );
 
+    let market = &mut ctx.accounts.market;
     market.fixture_id = fixture_id;
     market.market_type = market_type;
+    market.outcome_stakes = vec![0; options.len()];
+    market.outcome_liabilities = vec![0; options.len()];
     market.options = options;
-    market.outcome_pools = vec![0u64; num_options];
-    market.total_pool = 0;
+    market.total_staked = 0;
+    market.total_reserved_liability = 0;
+    market.liquidity_deposited = 0;
+    market.liquidity_withdrawn = 0;
     market.status = MarketStatus::Open;
-    market.winning_outcome = 255;
+    market.winning_outcome = u8::MAX;
     market.close_time = close_time;
-    market.resolver = ctx.accounts.resolver.key();
+    market.authority = ctx.accounts.authority.key();
+    market.team1_stat_key = team1_stat_key;
+    market.team2_stat_key = team2_stat_key;
+    market.stat_period = stat_period;
+    market.resolved_ts = 0;
     market.bump = ctx.bumps.market;
-    market.line = None;
+    market.vault_bump = ctx.bumps.vault;
 
-    msg!("Market created: fixture={}", fixture_id);
+    let vault = &mut ctx.accounts.vault;
+    vault.market = market.key();
+    vault.bump = ctx.bumps.vault;
+
     Ok(())
 }
 
@@ -34,7 +57,7 @@ pub struct InitializeMarket<'info> {
     #[account(
         init,
         payer = authority,
-        space = Market::MAX_SIZE,
+        space = Market::SPACE,
         seeds = [
             b"market",
             fixture_id.to_le_bytes().as_ref(),
@@ -44,8 +67,14 @@ pub struct InitializeMarket<'info> {
     )]
     pub market: Account<'info, Market>,
 
-    /// CHECK: keeper pubkey stored for auth
-    pub resolver: UncheckedAccount<'info>,
+    #[account(
+        init,
+        payer = authority,
+        space = SolVault::SPACE,
+        seeds = [b"vault", market.key().as_ref()],
+        bump,
+    )]
+    pub vault: Account<'info, SolVault>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -55,11 +84,11 @@ pub struct InitializeMarket<'info> {
 
 pub fn market_type_seed(mt: &MarketType) -> u8 {
     match mt {
-        MarketType::MatchWinner      => 0,
-        MarketType::TotalGoals       => 1,
-        MarketType::TotalCorners     => 2,
+        MarketType::MatchWinner => 0,
+        MarketType::TotalGoals => 1,
+        MarketType::TotalCorners => 2,
         MarketType::TotalYellowCards => 3,
-        MarketType::BothTeamsScore   => 4,
-        MarketType::FirstYellowCard  => 5,
+        MarketType::BothTeamsScore => 4,
+        MarketType::FirstYellowCard => 5,
     }
 }

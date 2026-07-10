@@ -20,4 +20,28 @@ pub enum MarketError {
     InvalidAmount,
     #[msg("Unauthorized resolver")]
     UnauthorizedResolver,
+    #[msg("Too many outcomes")]
+    TooManyOutcomes,
+    #[msg("Outcome name is too long")]
+    OutcomeNameTooLong,
+    #[msg("Insufficient market liquidity")]
+    InsufficientLiquidity,
+    #[msg("Invalid TxODDS oracle program")]
+    InvalidOracleProgram,
+    #[msg("Invalid TxODDS odds proof")]
+    InvalidOddsProof,
+    #[msg("Invalid TxODDS score proof")]
+    InvalidScoreProof,
+    #[msg("Invalid odds price")]
+    InvalidOddsPrice,
+    #[msg("Native SOL transfer failed")]
+    TransferFailed,
+    #[msg("Position is not refundable")]
+    NotRefundable,
+    #[msg("Market has not been cancelled")]
+    NotCancelled,
+    #[msg("Invalid market close time")]
+    InvalidCloseTime,
+    #[msg("Numeric overflow")]
+    NumericOverflow,
 }
