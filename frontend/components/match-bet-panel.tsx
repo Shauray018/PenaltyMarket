@@ -16,12 +16,14 @@ type OddsRecord = {
 export function MatchBetPanel({
   fixtureId,
   title,
+  marketType = 0,
   labels,
   outcomeLabels,
   marketExists = true
 }: {
   fixtureId: string;
   title: string;
+  marketType?: number;
   labels: string[];
   outcomeLabels: string[];
   marketExists?: boolean;
@@ -39,7 +41,7 @@ export function MatchBetPanel({
 
     async function loadOdds() {
       try {
-        const response = await fetch(`/api/odds/${fixtureId}`);
+        const response = await fetch(`/api/odds/${fixtureId}?marketType=${marketType}`);
         const payload = await response.json();
         if (!cancelled) setOdds(payload.primary ?? null);
       } catch {
@@ -53,7 +55,7 @@ export function MatchBetPanel({
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [fixtureId]);
+  }, [fixtureId, marketType]);
 
   useEffect(() => {
     if (!wallet.publicKey) {
@@ -71,9 +73,9 @@ export function MatchBetPanel({
   }, [connection, wallet.publicKey]);
 
   const multiplier = useMemo(() => {
-    const price = odds?.Prices?.[selected];
+    const price = odds?.Prices?.[selected] ?? demoPriceForMarket(marketType);
     return price ? price / 1000 : 0;
-  }, [odds, selected]);
+  }, [marketType, odds, selected]);
   const fee = stake * 0.01;
   const payout = Math.max(0, stake * multiplier - fee);
   const availability = balance === null ? "Connect wallet" : `${balance.toFixed(2)} SOL`;
@@ -87,9 +89,10 @@ export function MatchBetPanel({
         </span>
       </div>
       <div className="win95-window-body grid gap-3">
+        <div className="truncate text-sm font-black uppercase text-black">{title}</div>
         <div>
           <div className="mb-1 text-xs font-black uppercase text-[var(--muted)]">Selected Outcome</div>
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${Math.min(labels.length, 3)}, minmax(0, 1fr))` }}>
             {labels.map((item, index) => (
               <button
                 key={`${item}-${index}`}
@@ -138,13 +141,14 @@ export function MatchBetPanel({
             const payload = {
               fixtureId,
               title,
-              marketType: 0,
+              marketType,
               outcomeIndex: selected,
               outcomeLabel: outcomeLabels[selected] ?? labels[selected] ?? `Outcome ${selected + 1}`,
               marketExists,
-              oddsPrice: odds?.Prices?.[selected],
-              oddsMessageId: odds?.MessageId,
-              oddsTs: odds?.Ts
+              oddsPrice: odds?.Prices?.[selected] ?? demoPriceForMarket(marketType),
+              oddsMessageId: odds?.MessageId ?? `demo-${fixtureId}-${marketType}`,
+              oddsTs: odds?.Ts ?? Date.now(),
+              stakeSol: stake
             };
             console.debug("MatchBetPanel.openBet", payload);
             openBet(payload);
@@ -159,4 +163,8 @@ export function MatchBetPanel({
       </div>
     </section>
   );
+}
+
+function demoPriceForMarket(marketType: number) {
+  return marketType === 0 ? 0 : 2000;
 }

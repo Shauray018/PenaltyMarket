@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { X } from "lucide-react";
@@ -22,10 +22,17 @@ type OddsRecord = {
 export function BetDialog() {
   const selectedBet = useAppStore((state) => state.selectedBet);
   const closeBet = useAppStore((state) => state.closeBet);
+  const showToast = useAppStore((state) => state.showToast);
   const wallet = useWallet();
   const { connection } = useConnection();
   const [amount, setAmount] = useState("0");
   const [status, setStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedBet) return;
+    setAmount(String(selectedBet.stakeSol ?? 0));
+    setStatus(null);
+  }, [selectedBet]);
 
   if (!selectedBet) return null;
 
@@ -56,7 +63,7 @@ export function BetDialog() {
       }
 
       setStatus("Refreshing odds");
-      const latestOdds = await fetchLatestOdds(selectedBet.fixtureId);
+      const latestOdds = await fetchLatestOdds(selectedBet.fixtureId, selectedBet.marketType);
       console.debug("BetDialog.latestOdds", latestOdds);
       const currentOddsPrice = latestOdds?.Prices?.[selectedBet.outcomeIndex] ?? selectedBet.oddsPrice;
       const currentMessageId = latestOdds?.MessageId ?? selectedBet.oddsMessageId;
@@ -101,6 +108,12 @@ export function BetDialog() {
       const signed = await wallet.signTransaction(tx);
       const signature = await connection.sendRawTransaction(signed.serialize());
       setStatus(`Sent ${signature}`);
+      showToast({
+        title: "Bet Confirmed",
+        message: `${amount} SOL on ${selectedBet.outcomeLabel} was sent to devnet.`,
+        signature,
+        href: `https://explorer.solana.com/tx/${signature}?cluster=devnet`
+      });
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Bet failed.");
     }
@@ -218,8 +231,8 @@ function demoOddsProof({
   };
 }
 
-async function fetchLatestOdds(fixtureId: string) {
-  const response = await fetch(`/api/odds/${fixtureId}?mode=bettable`);
+async function fetchLatestOdds(fixtureId: string, marketType: number) {
+  const response = await fetch(`/api/odds/${fixtureId}?mode=updates&marketType=${marketType}`);
   const payload = await response.json();
   if (!response.ok) {
     throw new Error(payload.error ?? "Unable to refresh odds.");

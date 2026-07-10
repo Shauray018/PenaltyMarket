@@ -422,6 +422,64 @@
       ]
     },
     {
+      "name": "resolve_market_demo",
+      "discriminator": [
+        8,
+        242,
+        217,
+        184,
+        36,
+        78,
+        217,
+        62
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "winning_outcome",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "update_market_close_time",
+      "discriminator": [
+        155,
+        214,
+        174,
+        67,
+        22,
+        101,
+        52,
+        162
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_close_time",
+          "type": "i64"
+        }
+      ]
+    },
+    {
       "name": "withdraw_liquidity",
       "discriminator": [
         149,
@@ -613,6 +671,11 @@
     },
     {
       "code": 6019,
+      "name": "InvalidCloseTime",
+      "msg": "Invalid market close time"
+    },
+    {
+      "code": 6020,
       "name": "NumericOverflow",
       "msg": "Numeric overflow"
     }

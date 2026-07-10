@@ -144,7 +144,7 @@ export default function CreatePredictionPage() {
                   <input className="win95-input" type="datetime-local" value={deadline} onChange={(event) => setDeadline(event.target.value)} />
                 </label>
                 <div className="win95-panel-inset bg-white p-3 text-xs font-bold leading-5 text-[var(--muted)]">
-                  Market windows are normally closed around official kickoff. Keep the whistle before live play.
+                  Market windows stay open through the selected live betting end time.
                 </div>
               </div>
             )}

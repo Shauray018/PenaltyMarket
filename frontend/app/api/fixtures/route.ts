@@ -79,9 +79,12 @@ export async function GET() {
           loadPrimaryOdds(fixtureId),
           loadMatchWinnerMarket(fixtureId)
         ]);
+        const marketAccount = matchWinnerMarket?.account as Record<string, unknown> | null | undefined;
+        const onChainCloseTimeMs = Number(marketAccount?.closeTime ?? 0) * 1000 || undefined;
 
         return {
           ...fixture,
+          timing: marketTiming(fixture.startTime, now, onChainCloseTimeMs),
           primaryOdds,
           matchWinnerMarket
         };

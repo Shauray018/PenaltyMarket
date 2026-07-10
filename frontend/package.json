@@ -10,9 +10,13 @@
     "typecheck": "tsc --noEmit",
     "keeper:init-markets": "NODE_OPTIONS=--no-addons node ../keeper/initialize-market.mjs",
     "keeper:init-fixtures": "NODE_OPTIONS=--no-addons node ../keeper/initialize-market.mjs",
+    "keeper:demo-fixture": "INIT_MARKET_TYPES=0,1,2,3,4,5 INITIAL_MARKET_LIQUIDITY_SOL=${INITIAL_MARKET_LIQUIDITY_SOL:-2} NODE_OPTIONS=--no-addons node ../keeper/initialize-market.mjs",
     "keeper:init-markets:dry": "NODE_OPTIONS=--no-addons DRY_RUN=1 node ../keeper/initialize-market.mjs",
     "keeper:create-bet-alt": "NODE_OPTIONS=--no-addons node ../keeper/create-bet-lookup-table.mjs",
     "keeper:fund-market": "NODE_OPTIONS=--no-addons node ../keeper/fund-market.mjs",
+    "keeper:withdraw-liquidity": "NODE_OPTIONS=--no-addons node ../keeper/withdraw-liquidity.mjs",
+    "keeper:resolve-demo": "NODE_OPTIONS=--no-addons node ../keeper/resolve-demo-market.mjs",
+    "keeper:update-close-time": "NODE_OPTIONS=--no-addons node ../keeper/update-market-close-time.mjs",
     "mint:usdc": "NODE_OPTIONS=--no-addons node ../keeper/mint-usdc.mjs"
   },
   "dependencies": {

@@ -55,6 +55,7 @@ type FixturesResponse = {
     fixtureId: number;
     participant1: string;
     participant2: string;
+    startTime?: number;
     phase?: string;
     isLive?: boolean;
     status?: { name: string; label: string; phase: string } | null;
@@ -96,15 +97,19 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
   const home = matchWinner?.account?.options?.[0] ?? fixture?.participant1 ?? "Team 1";
   const away = matchWinner?.account?.options?.[2] ?? fixture?.participant2 ?? "Team 2";
   const options = [home, "Draw", away];
-  const outcomeLabels = [teamCode(home), "DRAW", teamCode(away)];
   const title = `${home} vs ${away}`;
   const closeTimes = data.markets.map((market) => Number(market.account?.closeTime ?? 0) * 1000).filter(Boolean);
-  const kickoffEstimate = closeTimes.length ? Math.min(...closeTimes) + 5 * 60 * 1000 : score.summary?.latest?.StartTime;
-  const timing = marketTiming(kickoffEstimate);
+  const onChainCloseTimeMs = closeTimes.length ? Math.min(...closeTimes) : undefined;
+  const kickoffEstimate = score.summary?.latest?.StartTime ?? fixture?.startTime;
+  const timing = marketTiming(kickoffEstimate, Date.now(), onChainCloseTimeMs);
   const pool = displayPoolLamports(matchWinner?.account);
   const stakes = matchWinner?.account?.outcomeStakes ?? ["0", "0", "0"];
   const activeForOdds = Boolean(score.summary?.isLive || score.summary?.status?.phase === "break" || fixture?.isLive || fixture?.phase === "break");
   const status = score.summary?.status ?? fixture?.status;
+  const betMarkets = data.markets
+    .filter((market) => market.exists && market.account)
+    .sort((a, b) => a.marketType.index - b.marketType.index);
+  const secondaryMarkets = betMarkets.filter((market) => market.marketType.index !== 0);
 
   return (
     <div className="grid gap-3">
@@ -155,6 +160,34 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
               <LiveOddsChart fixtureId={fixtureId} home={home} away={away} active={activeForOdds} />
             </div>
           </section>
+
+          {secondaryMarkets.length > 0 && (
+            <section className="win95-window">
+              <div className="win95-titlebar">
+                <span>PROP_MARKETS.EXE</span>
+                <span className="text-[10px] font-black">{secondaryMarkets.length} SLIPS</span>
+              </div>
+              <div className="win95-window-body">
+                <div className="grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
+                  {secondaryMarkets.map((market) => {
+                    const marketOptions = marketOutcomes(market, home, away);
+                    return (
+                      <MatchBetPanel
+                        key={market.marketType.index}
+                        fixtureId={fixtureId}
+                        title={`${title} - ${market.marketType.label}`}
+                        marketType={market.marketType.index}
+                        labels={marketOptions.map(optionCode)}
+                        outcomeLabels={marketOptions}
+                        marketExists={Boolean(market.exists)}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="win95-window">
             <div className="win95-titlebar">
               <span>POOL_SPLIT.EXE</span>
@@ -180,20 +213,23 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
               </p>
               <p className="flex gap-2">
                 <Flag className="mt-0.5 h-4 w-4 shrink-0 text-[#000080]" />
-                Pools close around official kickoff and claims unlock after resolution.
+                Pools stay open through the live betting window and claims unlock after resolution.
               </p>
             </div>
           </section>
         </main>
 
         <aside className="grid h-fit gap-3">
-          <MatchBetPanel
-            fixtureId={fixtureId}
-            title={title}
-            labels={outcomeLabels}
-            outcomeLabels={options}
-            marketExists={Boolean(matchWinner?.exists)}
-          />
+          {matchWinner && (
+            <MatchBetPanel
+              fixtureId={fixtureId}
+              title={title}
+              marketType={0}
+              labels={marketOutcomes(matchWinner, home, away).map(optionCode)}
+              outcomeLabels={marketOutcomes(matchWinner, home, away)}
+              marketExists={Boolean(matchWinner.exists)}
+            />
+          )}
 
           <section className="win95-window">
             <div className="win95-titlebar">
@@ -277,4 +313,29 @@ function teamCode(name: string) {
   if (!words.length) return "TBD";
   if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
   return words.map((word) => word[0]).join("").slice(0, 3).toUpperCase();
+}
+
+function optionCode(label: string) {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("over")) return lineLabel(label, "OVER");
+  if (normalized.includes("under")) return lineLabel(label, "UNDER");
+  if (normalized === "yes") return "YES";
+  if (normalized === "no") return "NO";
+  if (normalized === "none") return "NON";
+  if (normalized === "draw") return "DRAW";
+  return teamCode(label);
+}
+
+function lineLabel(label: string, side: "OVER" | "UNDER") {
+  const line = label.match(/\d+(?:\.\d+)?/)?.[0];
+  return line ? `${side} ${line}` : side;
+}
+
+function marketOutcomes(market: MarketsResponse["markets"][number], home: string, away: string) {
+  const options = market.account?.options?.length ? market.account.options : [...market.marketType.options];
+  return options.map((option) => {
+    if (option === "Team 1") return home;
+    if (option === "Team 2") return away;
+    return option;
+  });
 }

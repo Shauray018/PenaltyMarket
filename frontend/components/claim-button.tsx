@@ -4,10 +4,12 @@ import { useState } from "react";
 import { Transaction } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@/components/ui";
+import { useAppStore } from "@/lib/store";
 
 export function ClaimButton({ market, position }: { market: string; position: string }) {
   const wallet = useWallet();
   const { connection } = useConnection();
+  const showToast = useAppStore((state) => state.showToast);
   const [status, setStatus] = useState<string | null>(null);
 
   async function claim() {
@@ -30,6 +32,12 @@ export function ClaimButton({ market, position }: { market: string; position: st
       const signed = await wallet.signTransaction(tx);
       const signature = await connection.sendRawTransaction(signed.serialize());
       setStatus(signature);
+      showToast({
+        title: "Claim Sent",
+        message: "Your winnings claim was sent to devnet.",
+        signature,
+        href: `https://explorer.solana.com/tx/${signature}?cluster=devnet`
+      });
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Claim failed.");
     }

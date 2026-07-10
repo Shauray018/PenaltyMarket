@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BetDialog } from "@/components/bet-dialog";
+import { ConfirmationToast } from "@/components/confirmation-toast";
 import { Providers } from "@/components/providers";
 import { DesktopShell } from "@/components/win95-shell";
 import "./globals.css";
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <DesktopShell>
             <BetDialog />
+            <ConfirmationToast />
             {children}
           </DesktopShell>
         </Providers>

@@ -78,6 +78,14 @@ type AppState = {
     oddsPrice?: number;
     oddsMessageId?: string;
     oddsTs?: number;
+    stakeSol?: number;
+  };
+  toast: null | {
+    id: string;
+    title: string;
+    message: string;
+    signature?: string;
+    href?: string;
   };
   fixturesLoadedAt: number;
   loadingFixtures: boolean;
@@ -87,6 +95,8 @@ type AppState = {
   setFilter: (filter: AppState["filter"]) => void;
   openBet: (bet: NonNullable<AppState["selectedBet"]>) => void;
   closeBet: () => void;
+  showToast: (toast: Omit<NonNullable<AppState["toast"]>, "id">) => void;
+  dismissToast: () => void;
   loadFixtures: (force?: boolean) => Promise<void>;
   loadMarkets: (fixtureId: string, force?: boolean) => Promise<MarketItem[]>;
   loadOdds: (fixtureId: string, force?: boolean) => Promise<OddsRecord | null>;
@@ -100,6 +110,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   marketsByFixture: {},
   oddsByFixture: {},
   selectedBet: null,
+  toast: null,
   fixturesLoadedAt: 0,
   loadingFixtures: false,
   query: "",
@@ -108,6 +119,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   setFilter: (filter) => set({ filter }),
   openBet: (selectedBet) => set({ selectedBet }),
   closeBet: () => set({ selectedBet: null }),
+  showToast: (toast) =>
+    set({
+      toast: {
+        ...toast,
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`
+      }
+    }),
+  dismissToast: () => set({ toast: null }),
   loadFixtures: async (force = false) => {
     const state = get();
     if (!force && state.fixtures.length && Date.now() - state.fixturesLoadedAt < CACHE_MS) return;
