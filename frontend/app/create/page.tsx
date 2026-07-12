@@ -95,7 +95,7 @@ export default function CreatePredictionPage() {
                     {!fixtures.length && <option value="">Loading fixtures</option>}
                     {fixtures.map((fixture) => (
                       <option key={fixture.fixtureId} value={fixture.fixtureId}>
-                        #{fixture.fixtureId} - {fixture.participant1} vs {fixture.participant2}
+                        {fixture.participant1} vs {fixture.participant2}
                       </option>
                     ))}
                   </select>
@@ -159,7 +159,9 @@ export default function CreatePredictionPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className="text-xs font-black uppercase text-[var(--muted)]">Fixture</div>
-                      <div className="font-black">#{fixtureId || "TBD"}</div>
+                      <div className="font-black">
+                        {selectedFixture ? `${selectedFixture.participant1} vs ${selectedFixture.participant2}` : "TBD"}
+                      </div>
                     </div>
                     <ShieldCheck className="h-7 w-7 text-[#000080]" />
                   </div>

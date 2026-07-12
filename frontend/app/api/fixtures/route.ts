@@ -91,7 +91,9 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json({ fixtures: enriched });
+    return NextResponse.json({
+      fixtures: enriched.filter((fixture) => Boolean(fixture.primaryOdds || fixture.matchWinnerMarket?.exists))
+    });
   } catch (error) {
     return txlineError(error);
   }

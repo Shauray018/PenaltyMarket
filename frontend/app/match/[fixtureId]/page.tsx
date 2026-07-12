@@ -132,7 +132,7 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
           <div className="relative grid gap-3 text-center">
             <div className="mx-auto inline-flex items-center gap-2 bg-[#c0c0c0] px-2 py-1 text-[11px] font-black uppercase text-black">
               {activeForOdds && <span className="blink-dot" />}
-              Fixture {fixtureId} - {status?.label ?? "Match Terminal"}
+              {title} - {status?.label ?? "Match Terminal"}
             </div>
             <div className="grid grid-cols-[1fr_112px_1fr] items-center gap-2">
               <TeamBlock name={home} align="right" />

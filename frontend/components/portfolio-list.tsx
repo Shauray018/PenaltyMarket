@@ -21,6 +21,7 @@ type PortfolioResponse = {
       options?: string[];
     };
     settlement?: null | {
+      fixtureName: string | null;
       isFinished: boolean;
       status: { name: string; label: string; phase: string; live: boolean; terminal: boolean } | null;
       score: { participant1: number; participant2: number };
@@ -106,6 +107,7 @@ export function PortfolioList() {
         const options = item.market?.options ?? [];
         const pickedLabel = options[item.position.outcomeIndex] ?? `Outcome ${item.position.outcomeIndex}`;
         const winnerLabel = typeof displayedWinner === "number" ? options[displayedWinner] ?? `Outcome ${displayedWinner}` : null;
+        const fixtureName = item.settlement?.fixtureName ?? fixtureNameFromOptions(options) ?? "Match Ticket";
         const ticketStateLabel = ticketState({
           resolved,
           winner,
@@ -120,7 +122,7 @@ export function PortfolioList() {
                 <span className={`px-1.5 py-0.5 text-[10px] font-black uppercase ${resolved || finishedAwaitingSettlement ? "market-closed" : "market-open"}`}>
                   {item.position.claimed ? "Claimed" : resolved ? "Resolved" : finishedAwaitingSettlement ? "Awaiting Settlement" : "Open"}
                 </span>
-                <div className="truncate font-black">Fixture {item.market?.fixtureId ?? "unknown"}</div>
+                <div className="truncate font-black">{fixtureName}</div>
               </div>
               <div className="mt-1 text-xs font-bold text-[var(--muted)]">
                 Market {shortKey(item.marketPublicKey)}
@@ -150,6 +152,13 @@ export function PortfolioList() {
       </div>
     </section>
   );
+}
+
+function fixtureNameFromOptions(options: string[]) {
+  if (options.length >= 3 && options[1]?.toLowerCase() === "draw") {
+    return `${options[0]} vs ${options[2]}`;
+  }
+  return null;
 }
 
 function ticketState({

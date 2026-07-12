@@ -34,7 +34,7 @@ export function MarketBoard() {
     return fixtures.filter((fixture) => {
       const searchMatch =
         !normalizedQuery ||
-        `${fixture.participant1} ${fixture.participant2} ${fixture.fixtureId}`.toLowerCase().includes(normalizedQuery);
+        `${fixture.participant1} ${fixture.participant2}`.toLowerCase().includes(normalizedQuery);
       if (!searchMatch) return false;
       if (filter === "live") return Boolean(fixture.isLive || fixture.phase === "break");
       if (filter === "open") return Boolean(fixture.timing?.bettingOpen || fixture.timing?.bettingProminent);
@@ -83,7 +83,7 @@ export function MarketBoard() {
               <div className="win95-panel-inset grid min-h-32 place-items-center p-5 text-center">
                 <div>
                   <div className="text-lg font-black">No markets found</div>
-                  <div className="mt-1 text-xs font-bold text-[var(--muted)]">Try another club, fixture ID, or filter.</div>
+                  <div className="mt-1 text-xs font-bold text-[var(--muted)]">Try another club or filter.</div>
                 </div>
               </div>
             )}
@@ -171,7 +171,7 @@ function FeaturedMarket({ fixture, loading }: { fixture?: FixtureItem; loading: 
           <div className="grid grid-cols-3 gap-2 text-black">
             <FeaturedStat icon={<CircleDollarSign className="h-4 w-4" />} label="Pool" value={formatSol(pool)} />
             <FeaturedStat icon={<Users className="h-4 w-4" />} label="Refs" value={`${matchWinner?.account?.traderCount ?? 0}`} />
-            <FeaturedStat icon={<CalendarClock className="h-4 w-4" />} label="Fixture" value={fixture ? String(fixture.fixtureId) : "Demo"} />
+            <FeaturedStat icon={<CalendarClock className="h-4 w-4" />} label="Kickoff" value={fixture?.startTime ? formatShortCountdown(fixture.startTime) : "Demo"} />
           </div>
 
           <Link className="win95-button win95-button-primary w-full" href={fixture ? `/match/${fixture.fixtureId}` : "/"}>
@@ -238,7 +238,7 @@ function MarketFilters({
           <input
             aria-label="Search markets"
             className="win95-input pl-8"
-            placeholder="Team or fixture ID"
+            placeholder="Team name"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -271,7 +271,6 @@ function MarketRow({ fixture }: { fixture: FixtureItem }) {
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-1">
               <span className={`px-1.5 py-0.5 text-[10px] font-black uppercase ${statusClass}`}>{formatFixtureTiming(fixture)}</span>
-              <span className="bg-[#c0c0c0] px-1.5 py-0.5 text-[10px] font-black uppercase">#{fixture.fixtureId}</span>
             </div>
             <div className="grid gap-1 text-[15px] font-black leading-5">
               <span className="flex min-w-0 items-center gap-1.5">

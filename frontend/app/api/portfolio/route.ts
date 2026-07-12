@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PublicKey } from "@solana/web3.js";
 import { connection, fetchMarketAccount, program, programId, serializeAccount } from "@/lib/solana";
-import { summarizeScore, txlineFetch, type TxLineScoreSnapshot } from "@/lib/txline";
+import { normalizeFixture, summarizeScore, txlineFetch, type TxLineFixture, type TxLineScoreSnapshot } from "@/lib/txline";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
 }
 
 type PortfolioSettlement = {
+  fixtureName: string | null;
   isFinished: boolean;
   status: { name: string; label: string; phase: string; live: boolean; terminal: boolean } | null;
   score: { participant1: number; participant2: number };
@@ -68,18 +69,32 @@ function loadSettlement(fixtureId: number, cache: Map<number, Promise<PortfolioS
 
 async function loadSettlementUncached(fixtureId: number): Promise<PortfolioSettlement | null> {
   try {
-    const snapshots = await txlineFetch<TxLineScoreSnapshot[]>(`/api/scores/snapshot/${fixtureId}`);
+    const [snapshots, fixtureName] = await Promise.all([
+      txlineFetch<TxLineScoreSnapshot[]>(`/api/scores/snapshot/${fixtureId}`),
+      loadFixtureName(fixtureId)
+    ]);
     const summary = summarizeScore(snapshots);
     const participant1 = summary.participant1.goals;
     const participant2 = summary.participant2.goals;
     const derivedWinningOutcome = summary.isFinished ? (participant1 > participant2 ? 0 : participant2 > participant1 ? 2 : 1) : null;
 
     return {
+      fixtureName,
       isFinished: summary.isFinished,
       status: summary.status,
       score: { participant1, participant2 },
       derivedWinningOutcome
     };
+  } catch {
+    return null;
+  }
+}
+
+async function loadFixtureName(fixtureId: number) {
+  try {
+    const fixtures = await txlineFetch<TxLineFixture[]>("/api/fixtures/snapshot");
+    const fixture = fixtures.map(normalizeFixture).find((item) => Number(item.fixtureId) === fixtureId);
+    return fixture ? `${fixture.participant1} vs ${fixture.participant2}` : null;
   } catch {
     return null;
   }

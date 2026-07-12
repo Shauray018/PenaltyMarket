@@ -199,13 +199,6 @@ export function LiveOddsChart({
           </div>
         )}
 
-        {!active && (
-          <div className="absolute inset-0 grid place-items-center bg-[#080d16]/70">
-            <div className="-rotate-6 border border-[#344158] bg-[#101722] px-5 py-3 text-xl font-black text-[#aeb8cc]">
-              Match not live
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );
