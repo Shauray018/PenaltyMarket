@@ -1,0 +1,5 @@
+project_name: PenaltyMarket
+network: Solana devnet
+current_program_id: V1qrv6Cc4q9vkAFZR8fsAo7LFKUNJ4bHCdWX2AxxDNA
+amm_program_id: EbdvTA5GAHZru1f2pwAnu2mPgaWuZQBXXKz16VUiJXvM
+txline_base_url: https://txline.txodds.com
