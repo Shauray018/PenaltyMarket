@@ -168,14 +168,14 @@ export default async function MatchPage({ params }: { params: Promise<{ fixtureI
                 <span className="text-[10px] font-black">{secondaryMarkets.length} SLIPS</span>
               </div>
               <div className="win95-window-body">
-                <div className="grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
+                <div className="grid gap-3 xl:grid-cols-2">
                   {secondaryMarkets.map((market) => {
                     const marketOptions = marketOutcomes(market, home, away);
                     return (
                       <MatchBetPanel
                         key={market.marketType.index}
                         fixtureId={fixtureId}
-                        title={`${title} - ${market.marketType.label}`}
+                        title={market.marketType.label}
                         marketType={market.marketType.index}
                         labels={marketOptions.map(optionCode)}
                         outcomeLabels={marketOptions}

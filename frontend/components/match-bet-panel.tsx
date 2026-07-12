@@ -89,7 +89,7 @@ export function MatchBetPanel({
         </span>
       </div>
       <div className="win95-window-body grid gap-3">
-        <div className="truncate text-sm font-black uppercase text-black">{title}</div>
+        <div className="min-h-5 break-words text-sm font-black uppercase leading-5 text-black">{title}</div>
         <div>
           <div className="mb-1 text-xs font-black uppercase text-[var(--muted)]">Selected Outcome</div>
           <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${Math.min(labels.length, 3)}, minmax(0, 1fr))` }}>
