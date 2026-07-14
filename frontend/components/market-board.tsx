@@ -6,6 +6,7 @@ import { CalendarClock, CircleDollarSign, Flag, Search, ShieldCheck, Trophy, Use
 import { flagUrlForTeam } from "@/lib/flags";
 import { formatSol } from "@/lib/format";
 import { useAppStore, type FixtureItem } from "@/lib/store";
+import { ComingSoonOverlay } from "@/components/coming-soon-overlay";
 
 const filterLabels: Array<{ value: "trending" | "live" | "open"; label: string }> = [
   { value: "trending", label: "Hot Board" },
@@ -328,7 +329,8 @@ function MarketsUtilityRail({ fixtures }: { fixtures: FixtureItem[] }) {
 
   return (
     <div className="grid gap-3">
-      <section className="win95-window">
+      <ComingSoonOverlay>
+        <section className="win95-window">
         <div className="win95-titlebar">
           <span>REFEREE_BOX.EXE</span>
         </div>
@@ -350,9 +352,11 @@ function MarketsUtilityRail({ fixtures }: { fixtures: FixtureItem[] }) {
             <MiniStat label="Open" value={String(openCount)} />
           </div>
         </div>
-      </section>
+        </section>
+      </ComingSoonOverlay>
 
-      <section className="win95-window">
+      <ComingSoonOverlay>
+        <section className="win95-window">
         <div className="win95-titlebar">
           <span>SCOREBOARD.EXE</span>
         </div>
@@ -368,7 +372,8 @@ function MarketsUtilityRail({ fixtures }: { fixtures: FixtureItem[] }) {
             View Leaderboard
           </Link>
         </div>
-      </section>
+        </section>
+      </ComingSoonOverlay>
     </div>
   );
 }

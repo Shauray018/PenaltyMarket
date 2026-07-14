@@ -1,4 +1,5 @@
 import { Medal, Trophy } from "lucide-react";
+import { ComingSoonOverlay } from "@/components/coming-soon-overlay";
 
 const rows = [
   { name: "SolStriker", payout: "452.8 SOL", winRate: "68%", streak: "W5" },
@@ -11,7 +12,8 @@ const rows = [
 
 export default function LeaderboardPage() {
   return (
-    <div className="grid gap-3">
+    <ComingSoonOverlay>
+      <div className="grid gap-3">
       <section className="win95-window">
         <div className="win95-titlebar">
           <span>LEADERBOARD.EXE</span>
@@ -59,7 +61,8 @@ export default function LeaderboardPage() {
           <ScoreStat label="Claim Rate" value="100%" />
         </div>
       </section>
-    </div>
+      </div>
+    </ComingSoonOverlay>
   );
 }
 

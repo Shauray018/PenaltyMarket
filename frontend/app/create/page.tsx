@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, ClipboardCheck, Flag, PencilLine, ShieldCheck } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { ComingSoonOverlay } from "@/components/coming-soon-overlay";
 
 const steps = ["Match", "Outcomes", "Deadline", "Preview"] as const;
 
@@ -52,7 +53,8 @@ export default function CreatePredictionPage() {
   }
 
   return (
-    <div className="grid gap-3">
+    <ComingSoonOverlay>
+      <div className="grid gap-3">
       <section className="win95-window">
         <div className="win95-titlebar">
           <span>CREATE_MARKET.WIZ</span>
@@ -198,7 +200,8 @@ export default function CreatePredictionPage() {
           {status && <div className="win95-panel-inset bg-white p-2 text-xs font-bold text-[var(--muted)]">{status}</div>}
         </div>
       </section>
-    </div>
+      </div>
+    </ComingSoonOverlay>
   );
 }
 
